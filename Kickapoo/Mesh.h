@@ -16,7 +16,7 @@ public:
 	void load(const string& MeshName_);
 	void release();
 
-	void draw(const D3DXVECTOR3& position, const D3DXVECTOR3& dir);
+	void draw(const D3DXVECTOR3& position, const D3DXVECTOR3& dir = D3DXVECTOR3(1,0,0));
 
 	void operator= (const string& name_) { load(name_); }
 
