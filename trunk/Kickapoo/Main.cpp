@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nShowCmd)
 {
-	g_Window()->initApplication( "Anty Defense", 800, 600, hInstance, false );
+	g_Window()->initApplication( "Road Trip!", 800, 600, hInstance, false );
 	g_Direct3D()->initDirect3D(32, false);
 	g_Renderer()->create();
 	g_Input()->init(hInstance, false);

@@ -8,7 +8,7 @@ static float _fake;
 static float _selectionAlpha = 0.0f;
 static float _splashZeroElementY = 0.0f;
 static float _splashOneElementY = 600.0f;
-string _introText = "W roku 2010 na konferencji IGK wyciek³ kod pluginu do firefoxa\ndaj¹cy mo¿liwoœæ podró¿owania w czasie.\nNic od tamtego momentu nie by³o ju¿ takie samo.\n... a mówili, ¿e na wojnie nie ma God Mode.";
+string _introText = "Jesteœ komendantem komisariatu policji w siedlcach :P. \nMusisz chroniæ premiera zamieszanego w afere EURO2012.\n Dajesz dajesz, nie ma lipy!.";
 RECT _introRect;
 RECT _screenMiddleRect;
 
@@ -43,7 +43,7 @@ hangar("models/hangar_mesh.x")
 	g_Game = this;
 	
 	loadLevel();
-	changeState(EGameState::RoutePlaning);
+	changeState(EGameState::Intro);
 
 	explosionSound = g_Audio()->loadSound("sfx/explosion.wav");
 	g_fireSound = g_Audio()->loadSound("sfx/fire.wav");
@@ -70,7 +70,7 @@ hangar("models/hangar_mesh.x")
 	}
 
 	//! intro font
-	RECT tmp={80, 530, g_Window()->getWidth(), g_Window()->getHeight()};
+	RECT tmp={5, 460, g_Window()->getWidth(), g_Window()->getHeight()};
 	_introRect = tmp;
 	introFont_ = new Font();
 	introFont_->create("Comic Sans MS", 40, 0, false, &_introRect);
@@ -113,7 +113,7 @@ void Game::changeState(EGameState::TYPE state)
 void Game::startGame()
 {
 	loadLevel();
-	changeState(EGameState::Running);
+	changeState(EGameState::RoutePlaning);
 }
 
 void Game::update()
