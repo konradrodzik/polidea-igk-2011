@@ -159,7 +159,7 @@ Map* Map::load( const std::string& name )
 
 	fclose(file);
 
-	map->load(name);
+	map->map.load(name);
 
 	map->finalize();
 	return map;
@@ -508,7 +508,7 @@ void Map::drawTiles()
 					verts[k].tex[1] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[1];
 				}
 				break;
-
+				}
 			case TILE_Block:
 				{
 					if(!tile.mesh)
