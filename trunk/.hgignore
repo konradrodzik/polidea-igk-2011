@@ -1,0 +1,12 @@
+glob:Debug
+glob:pdb
+glob:*.user
+glob:ipch/kickapoo-324d463f/igk2010-575667ea.ipch
+glob:*.suo
+glob:*.sdf
+glob:*.opensdf
+syntax: glob
+*.ilk
+*.pdb
+*.exe
+ipch/kickapoo-3566ec40/igk2010-575667ea.ipch
