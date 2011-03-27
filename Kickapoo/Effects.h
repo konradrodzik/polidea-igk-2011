@@ -32,3 +32,19 @@ public:
 	float elapsedTime;
 	bool enabled;
 };
+
+class Fire : public ParticleEffect
+{
+public:
+	Fire(void);
+	~Fire(void);
+
+	virtual bool update();
+	virtual void draw(VertexBuffer* vb, BufferChunk& chunk);
+
+	void spawn();
+
+	D3DXVECTOR3 pos;
+	float elapsedTime;
+	bool enabled;
+};
