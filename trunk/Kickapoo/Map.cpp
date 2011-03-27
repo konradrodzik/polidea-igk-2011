@@ -284,10 +284,13 @@ void Map::finalize()
 				}
 
 
-				// add node
-				cur.node = &nodes[nodeCount++];
-				cur.node->position = D3DXVECTOR2(j,i);
-				cur.node->otherNodes.clear();
+				if(cur.texture != &g_Game->street)
+				{
+					// add node
+					cur.node = &nodes[nodeCount++];
+					cur.node->position = D3DXVECTOR2(j,i);
+					cur.node->otherNodes.clear();
+				}
 
 				if(cur.isStart)
 				{
@@ -394,6 +397,17 @@ void Map::finalize()
 			lastNode = node;
 		}
 	}
+
+	for(int i = 0; i < nodeCount; ++i)
+	{
+		Node* node = &nodes[i];
+		printf("Node %.fx%.f:\n", node->position.x, node->position.y);
+		for(int j = 0; j < node->otherNodes.size(); ++j)
+		{
+			Node* other = node->otherNodes[j];
+			printf("  -  %.fx%.f:\n", other->position.x, other->position.y);
+		}
+	}
 }
 
 void Map::startGroup(int i)
@@ -422,8 +436,8 @@ void Map::update()
 	cameraPosition.x = max(0, min(width, cameraPosition.x));
 	cameraPosition.z = max(0, min(height, cameraPosition.z));
 
-	cameraPosition.x = vehicles[0].position.x;
-	cameraPosition.z = vehicles[0].position.y;
+	//cameraPosition.x = vehicles[0].position.x;
+	//cameraPosition.z = vehicles[0].position.y;
 
 	if(scroll > 0)
 		cameraPosition.y = max(cameraPosition.y - 3, 2);
@@ -655,8 +669,12 @@ void Map::drawNodes(D3DXMATRIX* trans)
 			v[1].x = 0.5f+b->position.x;
 			v[1].z = 0.5f+b->position.y;
 			v[1].y = 0.02f;
+
+			D3DCOLOR color = D3DCOLOR_ARGB(255, (j%3) == 0 ? 100 : 200, 
+				(j%3) == 1 ? 100 : 200, 
+				(j%3) == 2 ? 100 : 200);
 			
-			line->DrawTransform(v, 2, trans, D3DCOLOR_ARGB(100,100,100,200));
+			line->DrawTransform(v, 2, trans, color);
 		}
 	}
 
