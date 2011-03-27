@@ -19,6 +19,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Header Files\RoutePlaner">
+      <UniqueIdentifier>{a55b1bfb-d82b-4370-b1bb-2e9eb8c84431}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\RoutePlaner">
+      <UniqueIdentifier>{2eee8762-d757-4126-b076-0aafaf0392db}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp">
@@ -92,6 +98,9 @@
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RoutePlaner.cpp">
+      <Filter>Source Files\RoutePlaner</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +178,9 @@
     </ClInclude>
     <ClInclude Include="Mesh.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RoutePlaner.h">
+      <Filter>Header Files\RoutePlaner</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
