@@ -148,7 +148,6 @@ void RoutePlaner::draw()
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
 
-
 	if (selectedGroup && selectedGroup->nodes.size() > 0) {
 		D3DXVECTOR2 lastPos = selectedGroup->nodes[0]->position;
 		D3DXVECTOR2 nextPos;

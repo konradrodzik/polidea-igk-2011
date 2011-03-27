@@ -155,7 +155,8 @@ enum TileType
 	TILE_Street,
 	TILE_Water,
 	TILE_Grass,
-	TILE_Block
+	TILE_Block,
+	TILE_BUNKIER
 };
 
 struct Tile

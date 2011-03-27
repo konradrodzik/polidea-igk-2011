@@ -20,23 +20,26 @@ public:
 class Nova : public ParticleEffect
 {
 public:
-	Nova(void);
+	Nova(D3DXVECTOR3 p, float time, float velocity);
 	~Nova(void);
 
 	virtual bool update();
 	virtual void draw(VertexBuffer* vb, BufferChunk& chunk);
 
-	void spawn();
+	void spawn(D3DCOLOR c);
 
 	D3DXVECTOR3 pos;
 	float elapsedTime;
 	bool enabled;
+	
+	float t;
+	float v_;
 };
 
 class Fire : public ParticleEffect
 {
 public:
-	Fire(void);
+	Fire(D3DXVECTOR3 p);
 	~Fire(void);
 
 	virtual bool update();
@@ -47,4 +50,5 @@ public:
 	D3DXVECTOR3 pos;
 	float elapsedTime;
 	bool enabled;
+
 };

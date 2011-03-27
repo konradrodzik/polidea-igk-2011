@@ -136,6 +136,30 @@ void Game::update()
 				return;
 			}
 		}
+
+		if(g_Input()->buttonClicked(0)) 
+		{
+			D3DXVECTOR3 p = map->cameraPosition;
+			p.y = 10;
+
+			/*Fire* fire = new Fire( p);
+			g_ParticleSystem()->spawn(fire);*/
+
+			Bullet* bullet = new Bullet(BulletType::BULLET_Rocket);
+			bullet->position.x = p.x;
+			bullet->position.y = p.y;
+			bullet->velocity = D3DXVECTOR2(RandomFloat(0, 1), RandomFloat(0, 1));
+
+			map->bullets.push_back(bullet);
+		}
+		else if(g_Input()->buttonClicked(1)) 
+		{
+			D3DXVECTOR3 p = map->cameraPosition;
+			p.y = -100;
+
+			Nova* nova = new Nova(p, 0.5f, 50);
+			g_ParticleSystem()->spawn(nova);
+		}
 	}
 }
 
@@ -206,7 +230,6 @@ void Game::draw()
 	{
 		if(map)
 			map->draw();
-		//g_ParticleSystem()->renderParticles();
 	}
 	
 }

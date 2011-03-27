@@ -7,7 +7,7 @@ Bullet::Bullet(BulletType type) : type(type), position(0,0), velocity(0,0)
 	if(type == BulletType::BULLET_Rocket)
 	{
 		splashRange = 100;
-		texture = "gfx/player_selected.png";
+		texture = "gfx/missle.png";
 
 		smoke = new Smoke();
 		g_ParticleSystem()->spawn(smoke);
@@ -26,7 +26,7 @@ void Bullet::update()
 void Bullet::draw()
 {
 	texture.set();
-	g_Renderer()->drawRect(position.x, position.y, 10, 10);
+	g_Renderer()->drawRotatedRect(position.x, position.y, 10, 10, velocity);
 }
 
 Bullet* Vehicle::fire(D3DXVECTOR2 dir)
@@ -448,6 +448,21 @@ END:
 		if(vehicles[j].hp > 0)
 		{
 			vehicles[j].update();
+			
+			// wygrana
+			if(vehicles[j].type == VehicleType::VEHICLE_Vip)
+			{
+				int x = vehicles[j].position.x, y = vehicles[j].position.y;
+				if(tiles[x][y].type == TileType::TILE_BUNKIER)
+				{
+					g_Game->changeState(EGameState::GameFinished);
+				}
+			}
+		}
+		// przegrana
+		else if(vehicles[j].type == VehicleType::VEHICLE_Vip) 
+		{
+			g_Game->changeState(EGameState::GameFinished);
 		}
 	}
 
@@ -532,15 +547,16 @@ void Map::drawTiles()
 				{
 					if(!tile.texture)
 						continue;
-				Vertex verts[COUNT_OF(RectVerts)];
-				for(int k = 0; k < COUNT_OF(RectVerts); ++k)
-				{
-					verts[k] = RectVerts[k];
-					verts[k].xyz[0] += j;
-					verts[k].xyz[2] += i;
-					verts[k].tex[0] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[0];
-					verts[k].tex[1] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[1];
-				}
+					Vertex verts[COUNT_OF(RectVerts)];
+					for(int k = 0; k < COUNT_OF(RectVerts); ++k)
+					{
+						verts[k] = RectVerts[k];
+						verts[k].xyz[0] += j;
+						verts[k].xyz[2] += i;
+						verts[k].tex[0] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[0];
+						verts[k].tex[1] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[1];
+					}
+				
 				tile.texture->set(0);
 				getDevice()->SetFVF(Vertex::FVF);
 				getDevice()->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(verts[0]));
