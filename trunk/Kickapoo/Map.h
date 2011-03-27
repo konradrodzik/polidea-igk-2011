@@ -82,7 +82,7 @@ struct Vehicle
 	bool driving;
 
 	Vehicle() : type(VEHICLE_Fast), bulletType(BULLET_Shot), model(NULL), group(NULL), currentNode(0), velocity(1), position(0,0),
-		dir(0,0), range(0), fireTime(0), time(0), startTime(0)
+		dir(0,0), range(5), fireTime(0), time(0), startTime(0)
 	{
 		hp = 300;
 		driving = true;
@@ -122,7 +122,7 @@ struct Tower
 	Tower() : type(TOWER_Fast), mesh(NULL), range(0), fireTime(0), pos(0,0)
 	{
 		hp = 300;
-		range = 200;
+		range = 2;
 	}
 
 	void update()
