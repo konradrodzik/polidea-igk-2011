@@ -1,0 +1,11 @@
+# File created by luuv TSX
+# Created on: Tue Oct 12 18:33:51 2010 -1
+
+newmtl raindrip_apartment_c
+Ns 0
+Ka 0.410000 0.410000 0.410000
+Kd 1.000000 1.000000 1.000000
+Ks 0.100000 0.100000 0.100000
+d 0.996078
+map_Kd raindrip_apartmentC_tex.bmp 
+# End
