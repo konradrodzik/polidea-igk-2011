@@ -159,7 +159,7 @@ Map* Map::load( const std::string& name )
 
 	fclose(file);
 
-	map->map.load(name);
+	map->map.load(name, -1);
 
 	map->finalize();
 	return map;
@@ -254,7 +254,9 @@ void Map::finalize()
 			}
 			else if(cur.type == TILE_Block)
 			{
-				//cur.mesh = &g_Game->ap_b;
+					if(i & 3 || j & 3)
+						continue;
+				cur.mesh = &g_Game->ap_b;
 			}
 			else
 			{
@@ -513,7 +515,7 @@ void Map::drawTiles()
 				{
 					if(!tile.mesh)
 						continue;
-				tile.mesh->draw(D3DXVECTOR3(j + 0.5f, 0, i + 0.5f), D3DXVECTOR3());
+				tile.mesh->draw(D3DXVECTOR3(j, 0, i), D3DXVECTOR3());
 				}
 				break;
 			}
@@ -574,8 +576,8 @@ void Map::draw()
 	D3DXVECTOR3 at, up(0,0,1);
 	at = cameraPosition;
 	at.x += 0;
-	//at.y += 1;
-	at.y= 0;
+	// at.z += 3;
+	at.y = 0;
 	D3DXMatrixLookAtRH(&view, &cameraPosition, &at, &up);
 	getDevice()->SetTransform(D3DTS_VIEW, &view);
 
@@ -624,8 +626,6 @@ void Map::draw()
 
 	// draw map
 	drawTiles();
-
-	g_Game->tank1.draw(D3DXVECTOR3(10, 1, 15), D3DXVECTOR3());
 
 	// setup drawing options
 	getDevice()->SetRenderState(D3DRS_LIGHTING, FALSE);

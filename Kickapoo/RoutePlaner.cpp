@@ -128,11 +128,15 @@ void RoutePlaner::draw()
 	g_Renderer()->drawRectRHW(800-146, 600 - 32, 146, 32);
 
 	//! map
-	int mapWidth = game_->map->width * 4;
+	int mapWidth = game_->map->width * 6;
 	int mapHeight = mapWidth * game_->map->height / (float)game_->map->width;
 	game_->map->map.set();
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
+	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
+	getDevice()->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_FLAT);
 	g_Renderer()->drawRectRHW(800 - mapWidth, 600 - 32 - mapHeight, mapWidth, mapHeight);
 }
