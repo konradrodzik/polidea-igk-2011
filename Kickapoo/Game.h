@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "Map.h"
+#include "RoutePlaner.h"
 #include "Mesh.h"
 
 #define DEG2RAD 0.0174532925
@@ -11,6 +12,7 @@ namespace EGameState
 	{
 		Intro,
 		Running,
+		RoutePlaning,
 		LevelFinished,
 		GameFinished
 	};
@@ -40,7 +42,7 @@ public:
 
 	//! loads level
 	void loadLevel();
-protected:
+public:
 	static const int maxLevels_ = 6;
 
 	EGameState::TYPE state_;
@@ -61,6 +63,7 @@ protected:
 
 	Sound* typingSound;
 
+	RoutePlaner *routePlaner;
 public:
 	Texture street, street_corner, street_cross3, street_cross;
 	Mesh tank1;
