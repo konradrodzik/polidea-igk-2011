@@ -6,7 +6,7 @@ Bullet::Bullet(BulletType type) : type(type), position(0,0), velocity(0,0)
 {
 	if(type == BulletType::BULLET_Rocket)
 	{
-		splashRange = 100;
+		splashRange = 1;
 		texture = "gfx/missile.png";
 
 		smoke = new Smoke();
@@ -16,6 +16,7 @@ Bullet::Bullet(BulletType type) : type(type), position(0,0), velocity(0,0)
 
 void Bullet::update()
 {
+	D3DXVec2Normalize(&velocity, &velocity);
 	position = position + velocity * g_Timer()->getFrameTime();
 	if(type == BulletType::BULLET_Rocket)
 	{
@@ -26,7 +27,7 @@ void Bullet::update()
 void Bullet::draw()
 {
 	texture.set();
-	g_Renderer()->drawRotatedRect(position.x, position.y, 10, 10, velocity);
+	g_Renderer()->drawRotatedRectZ(position.x - 0.2, position.y - 0.2, 0.2f, 0.2f, velocity);
 }
 
 Bullet* Vehicle::fire(D3DXVECTOR2 dir)
@@ -34,6 +35,8 @@ Bullet* Vehicle::fire(D3DXVECTOR2 dir)
 	fireTime = 0;
 	Bullet* bullet = new Bullet(bulletType);
 	bullet->position = position;
+	bullet->position.x -= 0.5f;
+	bullet->position.y -= 0.5f;
 	bullet->velocity = dir;
 	return bullet;
 }
@@ -88,7 +91,7 @@ void Map::setupGroups()
 		vehicles[i].group = &groups[groupIndex];
 		vehicles[i].tile = Texture( i % 2 == 0 ? "taxi.png" : "police.png" );
 		int nodeIndex = i % nodeCount;
-		vehicles[i].position = nodes[nodeIndex].position;
+		vehicles[i].position = nodes[0].position;
 	}
 	vehicleCount = 16;
 
@@ -467,7 +470,7 @@ void Map::update()
 		bullets[i]->update();
 		// TODO: collisions
 		int x = bullets[i]->position.x, y = bullets[i]->position.y;
-		if(tiles[x][y].type == TileType::TILE_Block)
+		if(x < 0 || y < 0 || tiles[x][y].type == TileType::TILE_Block)
 		{
 			bullets.erase(bullets.begin() + i);
 			goto END;
@@ -482,6 +485,17 @@ void Map::update()
 				{
 					vehicles[j].hp -= bullets[i]->demage();
 					// TODO: particle
+					/*if(bullets[i]->type == BulletType::BULLET_Rocket)
+					{
+						g_ParticleSystem()->spawn(new Nova(D3DXVECTOR3(bullets[i]->position.x, 
+							0, bullets[i]->position.y), 1, 100));
+					}
+					else if(bullets[i]->type == BulletType::BULLET_Shot) 
+					{
+						g_ParticleSystem()->spawn(new Fire(D3DXVECTOR3(bullets[i]->position.x, 
+							0, bullets[i]->position.y)));
+					}*/
+
 					bullets.erase(bullets.begin() + i);
 					goto END;
 				}
@@ -497,6 +511,17 @@ void Map::update()
 				{
 					towers[j]->hp -= bullets[i]->demage();
 					// TODO: particle
+					/*if(bullets[i]->type == BulletType::BULLET_Rocket)
+					{
+						g_ParticleSystem()->spawn(new Nova(D3DXVECTOR3(bullets[i]->position.x, 
+							0, bullets[i]->position.y), 1, 100));
+					}
+					else if(bullets[i]->type == BulletType::BULLET_Shot) 
+					{
+						g_ParticleSystem()->spawn(new Fire(D3DXVECTOR3(bullets[i]->position.x, 
+							0, bullets[i]->position.y)));
+					}*/
+
 					bullets.erase(bullets.begin() + i);
 					goto END;
 				}
@@ -536,7 +561,7 @@ END:
 		towers[i]->update();
 		for(int j = 0; j < vehicleCount; ++j)
 		{
-			if(vehicles[j].hp > 0)
+			if(vehicles[j].hp > 0 && vehicles[j].time > vehicles[j].startTime)
 			{
 				float dist = D3DXVec2Length(&(towers[i]->pos - vehicles[j].position));
 				if(dist < towers[i]->range)
