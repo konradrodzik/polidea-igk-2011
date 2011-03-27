@@ -77,11 +77,14 @@ struct Vehicle
 	float fireTime;
 	float time;
 	float startTime;
+	D3DXVECTOR2 nextPos;
+	bool driving;
 
-	Vehicle() : type(VEHICLE_Fast), bulletType(BULLET_Shot), model(NULL), group(NULL), currentNode(0), velocity(10), position(0,0),
+	Vehicle() : type(VEHICLE_Fast), bulletType(BULLET_Shot), model(NULL), group(NULL), currentNode(0), velocity(1), position(0,0),
 		dir(0,0), range(0), fireTime(0), time(0), startTime(0)
 	{
 		hp = 300;
+		driving = true;
 	}
 
 	Bullet* fire(D3DXVECTOR2 dir);

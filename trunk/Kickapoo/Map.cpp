@@ -7,7 +7,7 @@ Bullet::Bullet(BulletType type) : type(type), position(0,0), velocity(0,0)
 	if(type == BulletType::BULLET_Rocket)
 	{
 		splashRange = 100;
-		texture = "gfx/missle.png";
+		texture = "gfx/missile.png";
 
 		smoke = new Smoke();
 		g_ParticleSystem()->spawn(smoke);
@@ -47,16 +47,23 @@ void Vehicle::update()
 
 	if(time > startTime)
 	{
-		D3DXVECTOR2 nextPos = group->nodes[currentNode + 1]->position;
-		if(currentNode + 1 < group->nodes.size())
+		if(driving)
 		{
-			dir = nextPos - group->nodes[currentNode]->position;
-		}
-		position = position + dir * velocity * g_Timer()->getFrameTime();
+			if(currentNode + 1 < group->nodes.size())
+			{
+				nextPos = group->nodes[currentNode + 1]->position;
+				dir = nextPos - group->nodes[currentNode]->position;
+			}
+			position = position + dir * velocity * g_Timer()->getFrameTime();
 
-		if(D3DXVec2Length(&(nextPos - position))) 
-		{
-			currentNode++;
+			if(D3DXVec2Length(&(nextPos - position)) < 0.1) 
+			{
+				currentNode++;
+				if(currentNode > group->nodes.size()) {
+					dir = D3DXVECTOR2(0, 0);
+					driving = false;
+				}
+			}
 		}
 	}
 }
@@ -76,7 +83,7 @@ void Map::setupGroups()
 	groupCount = 4;
 	int groupIndex = 0;
 	for (int i=0; i < 16; ++i) {
-		if (i > 3 && i % 4 == 0) groupIndex++;
+		//if (i > 3 && i % 4 == 0) groupIndex++;
 		vehicles[i].group = &groups[groupIndex];
 		vehicles[i].tile = Texture( i % 2 == 0 ? "tank_tile.png" : "smoketex.jpg" );
 		int nodeIndex = i % nodeCount;
@@ -86,6 +93,10 @@ void Map::setupGroups()
 
 	vehicles[rand() % vehicleCount].type = VEHICLE_Vip;
 
+	for(int i = 0; i < nodeCount; ++i)
+	{
+		groups[0].nodes.push_back(&nodes[i]);
+	}
 	D3DXVECTOR2 startPos = D3DXVECTOR2((g_Window()->getWidth() - GROUP_BUTTON_SIZE * groupCount) / 2, 
 		g_Window()->getHeight() - GROUP_BUTTON_SIZE);
 	float groupRay = GROUP_BUTTON_SIZE;
@@ -389,6 +400,9 @@ void Map::update()
 	cameraPosition.z -= dy * sensitivity * g_Timer()->getFrameTime();
 	cameraPosition.x = max(0, min(width, cameraPosition.x));
 	cameraPosition.z = max(0, min(height, cameraPosition.z));
+
+	cameraPosition.x = vehicles[0].position.x;
+	cameraPosition.z = vehicles[0].position.y;
 
 	if(scroll > 0)
 		cameraPosition.y = max(cameraPosition.y - 3, 2);
