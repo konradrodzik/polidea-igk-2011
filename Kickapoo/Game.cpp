@@ -52,7 +52,7 @@ hangar("models/hangar_mesh.x")
 	g_wallSound = g_Audio()->loadSound("sfx/wall.wav");
 
 	background =  g_Audio()->loadSound("sfx/background.mp3", true);
-	backgroundMusicStarted = false;
+	backgroundMusicStarted = true;
 
 	typingSound = g_Audio()->loadSound("sfx/typing.wav");
 
@@ -105,6 +105,8 @@ void Game::changeState(EGameState::TYPE state)
 	if(state_ == EGameState::Running)
 	{
 		map->setupGroups();
+
+		g_Audio()->play(g_Game->background, 1.0, false, 1000);
 	}
 }
 
@@ -112,8 +114,6 @@ void Game::startGame()
 {
 	loadLevel();
 	changeState(EGameState::Running);
-
-	
 }
 
 void Game::update()

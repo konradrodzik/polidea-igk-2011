@@ -109,7 +109,7 @@ void Map::setupGroups()
 	for (int i=0; i < 16; ++i) {
 		if (i > 3 && i % 4 == 0) groupIndex++;
 		vehicles[i].group = &groups[groupIndex];
-		vehicles[i].tile = Texture( i % 2 == 0 ? "taxi.png" : "police.png" );
+		vehicles[i].tile = Texture( i % 2 == 0 ? "taxi.png" : "merc.png" );
 		int nodeIndex = i % nodeCount;
 		if(startNode)
 			vehicles[i].position = startNode->position;
@@ -452,6 +452,7 @@ void Map::finalize()
 
 void Map::startGroup(int i)
 {
+	g_Audio()->play(g_Game->pickSound);
 	groups[i].started = true;
 	for(int j = 0; j < 4; ++j)
 	{

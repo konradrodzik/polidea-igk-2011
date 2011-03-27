@@ -40,12 +40,12 @@ void Audio::update()
 	system->update();
 }
 
-void Audio::play(FMOD::Sound* sound, float volume, bool stop)
+void Audio::play(FMOD::Sound* sound, float volume, bool stop, int loopCount)
 {
 	channel->setVolume(volume);
-	//channel->setLoopCount(100000);
+	channel->setLoopCount(loopCount);
 	system->playSound(FMOD_CHANNEL_FREE, sound, stop, &channel);
-	//sound->setLoopCount(1000);
+	sound->setLoopCount(loopCount);
 }
 
 void Audio::stopSoud( FMOD::Sound* sound )
