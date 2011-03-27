@@ -12,7 +12,7 @@ public:
 	void create();
 	void release();
 	void update();
-	void play(FMOD::Sound* sound, float volume = 1.0f, bool stop = false);
+	void play(FMOD::Sound* sound, float volume = 1.0f, bool stop = false, int loopCount = 0);
 
 	void stopSoud(FMOD::Sound* sound);
 

@@ -77,6 +77,7 @@ void RoutePlaner::update()
 	}
 
 	if (clickedButton) {
+		g_Audio()->play(g_Game->pickSound);
 		if (lastClickedButton != NULL && lastClickedButton != clickedButton) {
 			//! SWAPING GROUPS
 			Group *groupA = clickedButton->vehicle->group;

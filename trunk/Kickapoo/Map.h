@@ -81,7 +81,7 @@ struct Vehicle
 	D3DXVECTOR2 nextPos;
 	bool driving;
 
-	Vehicle() : type(VEHICLE_Fast), bulletType(BULLET_Shot), model(NULL), group(NULL), currentNode(0), velocity(1), position(0,0),
+	Vehicle() : type(VEHICLE_Fast), bulletType(BULLET_Rocket), model(NULL), group(NULL), currentNode(0), velocity(1), position(0,0),
 		dir(0,0), range(5), fireTime(0), time(0), startTime(0)
 	{
 		hp = 300;
