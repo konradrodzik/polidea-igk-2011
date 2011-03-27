@@ -152,9 +152,9 @@ void RoutePlaner::draw()
 	background.set();
 	g_Renderer()->drawRectRHW(0, 0, 800, 600);
 
-
 	selection.set();
-	g_Renderer()->drawRectRHW(10, buttonStartY + ( buttonMarginY + buttonSize ) * selectedGroupIndex, 305, buttonSize);
+	g_Renderer()->drawRectRHW(12, buttonStartY + ( buttonMarginY + buttonSize ) * selectedGroupIndex + buttonSize * 0.350f, 363, buttonSize);
+
 
 	for (int i=0; i < buttonCount; ++i) {
 		Button *button = buttons[i];
@@ -162,7 +162,7 @@ void RoutePlaner::draw()
 		texture.set();
 	
 		if (i == lastClickedButtonIndex) {
-			g_Renderer()->drawRectRHW(20 + button->rect.left - 10, 20 + button->rect.top - 10, buttonSize + 20, buttonSize + 20);
+			g_Renderer()->drawRectRHW(20 + button->rect.left - 15, 20 + button->rect.top - 15, buttonSize + 30, buttonSize + 30, D3DCOLOR_XRGB(125, 255, 0));
 		} else {
 			g_Renderer()->drawRectRHW(20 + button->rect.left, 20 + button->rect.top, buttonSize, buttonSize);
 		}
