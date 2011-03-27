@@ -13,8 +13,9 @@ struct Node
 {
 	D3DXVECTOR2 position;
 	vector<Node*> otherNodes;
+	bool hangar;
 
-	Node() : position(0,0)
+	Node() : position(0,0), hangar(false)
 	{
 	}
 };
@@ -171,8 +172,9 @@ struct Tile
 	int offset;
 	Node* node;
 	Mesh* mesh;
+	bool isStart;
 
-	Tile() : type(TILE_Ignore), random(0), texture(0), node(NULL), mesh(NULL)
+	Tile() : type(TILE_Ignore), random(0), texture(0), node(NULL), mesh(NULL), isStart(false)
 	{
 	}
 };
@@ -184,6 +186,7 @@ public:
 	int width, height;
 
 	Node nodes[MaxMapNodes];
+	Node* startNode;
 	int nodeCount;
 	
 	Vehicle vehicles[MaxMapVehicles];
