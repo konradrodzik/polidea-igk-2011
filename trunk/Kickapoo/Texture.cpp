@@ -15,7 +15,7 @@ void Texture::load(const string& textureName_, int mipMapLevels)
 		0,
 		D3DFMT_UNKNOWN,	
 		D3DPOOL_MANAGED, 
-		D3DX_DEFAULT, 
+		mipMapLevels == -1 ? D3DX_FILTER_NONE : D3DX_DEFAULT, 
 		D3DX_DEFAULT,
 		0, 
 		NULL, 
