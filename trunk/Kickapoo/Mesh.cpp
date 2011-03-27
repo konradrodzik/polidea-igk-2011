@@ -61,10 +61,18 @@ void Mesh::draw(const D3DXVECTOR3& position, const D3DXVECTOR3& dir)
 
 	D3DXMATRIX trans;
 	D3DXMatrixTranslation(&trans, position.x, position.y, position.z);
-	trans.m[0][0] = scale.x;
-	trans.m[1][1] = scale.y;
-	trans.m[2][2] = scale.z;
 	getDevice()->SetTransform(D3DTS_WORLD, &trans);
+
+	D3DXVECTOR3 up(0,1,0);
+	D3DXVECTOR3 tan;
+	D3DXVec3Cross(&tan, &dir, &up);
+	D3DXMatrixIdentity(&trans);
+
+	float angle = acosf(dir.x);
+	if(dir.x == 0 || tanf(dir.z/dir.x) < 0)
+		angle += 3.14;
+	D3DXMatrixRotationY(&trans, angle);
+	getDevice()->SetTransform(D3DTS_WORLD2, &trans);
 
 	for(DWORD i=0; i<materials.size(); i++)
 	{
@@ -74,4 +82,5 @@ void Mesh::draw(const D3DXVECTOR3& position, const D3DXVECTOR3& dir)
 
 	D3DXMatrixIdentity(&trans);
 	getDevice()->SetTransform(D3DTS_WORLD, &trans);
+	getDevice()->SetTransform(D3DTS_WORLD1, &trans);
 }

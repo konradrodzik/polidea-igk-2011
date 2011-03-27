@@ -85,17 +85,43 @@ Map::~Map()
 void Map::setupGroups()
 {
 	groupCount = 4;
+
+#if 1
+	if(vehicleCount == 0)
+	{
+		for(int i = 0; i < 16; ++i)
+		{
+			Vehicle& v = vehicles[vehicleCount++];
+			v.tile.load("police.png");
+			v.group = &groups[i % groupCount];
+		}
+	}
+	
+	for(int i = 0; i < vehicleCount; ++i)
+	{
+		if(startNode)
+			vehicles[i].position = startNode->position;
+		else
+			vehicles[i].position = nodes[0].position;
+	}
+#else
 	int groupIndex = 0;
 	for (int i=0; i < 16; ++i) {
 		if (i > 3 && i % 4 == 0) groupIndex++;
 		vehicles[i].group = &groups[groupIndex];
 		vehicles[i].tile = Texture( i % 2 == 0 ? "taxi.png" : "police.png" );
 		int nodeIndex = i % nodeCount;
-		vehicles[i].position = nodes[0].position;
+		if(startNode)
+			vehicles[i].position = startNode->position;
+		else
+			vehicles[i].position = nodes[0].position;
 	}
 	vehicleCount = 16;
+#endif
 
-	vehicles[rand() % vehicleCount].type = VEHICLE_Vip;
+	int vip = rand() % vehicleCount;
+	vehicles[vip].type = VEHICLE_Vip;
+	vehicles[vip].tile.load("merc.png");
 	/*
 	for(int i = 0; i < nodeCount; ++i)
 	{
@@ -178,8 +204,9 @@ Map* Map::load( const std::string& name )
 					map->tiles[j][h].random = 1;// + 0.5 * (float)rand() / RAND_MAX;
 				}
 				else if(bytes[0] >80 && bytes[1] <= 80 && bytes[2]> 80) {
-					map->tiles[j][h].type = TILE_BUNKIER;
+					map->tiles[j][h].type = TILE_Street;
 					map->tiles[j][h].random = 1;
+					map->tiles[j][h].isEnd = true;
 				}
 				else if(bytes[0] <= 80 && bytes[1] > 80 && bytes[2] <= 80) {
 						map->tiles[j][h].texture = &g_Game->grass;
@@ -288,7 +315,7 @@ void Map::finalize()
 				}
 
 
-				if(cur.texture != &g_Game->street || cur.isStart)
+				if(cur.texture != &g_Game->street || cur.isStart || cur.isEnd)
 				{
 					// add node
 					cur.node = &nodes[nodeCount++];
@@ -299,6 +326,15 @@ void Map::finalize()
 				if(cur.isStart)
 				{
 					startNode = cur.node;
+				}
+
+				if(cur.isEnd)
+				{
+					cur.node->hangar = true;
+					cur.texture = &g_Game->grass;
+					if(i & 2 || j & 2)
+						continue;
+					cur.mesh = &g_Game->hangar;
 				}
 			}
 			else if(cur.type == TILE_BUNKIER)
@@ -311,13 +347,13 @@ void Map::finalize()
 			else if(cur.type == TILE_Block)
 			{
 						cur.texture = &g_Game->grass;
-					if(i & 2 || j & 2)
-						continue;
+					//if(i & 2 || j & 2)
+					//	continue;
 
 					switch(rand() % 3)
 					{
 					case 0:
-				cur.mesh = &g_Game->ap_b;
+				cur.mesh = &g_Game->ap_c;
 				break;
 				
 					case 2:
@@ -434,17 +470,20 @@ void Map::update()
 	int scroll;
 	g_Input()->getMovement(dx, dy);
 	g_Input()->getScroll(scroll);
-	float sensitivity = 4;
-	cameraPosition.x -= dx * sensitivity * g_Timer()->getFrameTime(); 
-	cameraPosition.z -= dy * sensitivity * g_Timer()->getFrameTime();
+	float sensitivity = 3;
+	cameraPosition.x += dx * sensitivity * g_Timer()->getFrameTime(); 
+	cameraPosition.z += dy * sensitivity * g_Timer()->getFrameTime();
 	cameraPosition.x = max(0, min(width, cameraPosition.x));
 	cameraPosition.z = max(0, min(height, cameraPosition.z));
 
 	//cameraPosition.x = vehicles[0].position.x;
 	//cameraPosition.z = vehicles[0].position.y;
 
+	if(g_Input()->keyPressed(VK_SPACE))
+		camera_mode = !camera_mode;
+
 	if(scroll > 0)
-		cameraPosition.y = max(cameraPosition.y - 3, 2);
+		cameraPosition.y = max(cameraPosition.y - 3, 3);
 	else if(scroll < 0)
 		cameraPosition.y = min(cameraPosition.y + 3, 100);
 
@@ -635,7 +674,7 @@ void Map::drawTiles()
 			case TILE_Block:
 				if(tile.mesh)
 				{
-					tile.mesh->draw(D3DXVECTOR3(j, 0, i), D3DXVECTOR3());
+					tile.mesh->draw(D3DXVECTOR3(j + 0.5f, 0, i + 0.5f));
 					tile.texture = &g_Game->grass;
 				}
 
@@ -678,6 +717,41 @@ void Map::drawNodes(D3DXMATRIX* trans)
 
 	line->Begin();
 
+#if 1
+	D3DCOLOR colors[MaxMapGroups] =
+	{	
+		D3DCOLOR_ARGB(100, 255, 150, 120),
+		D3DCOLOR_ARGB(100, 120, 255, 120),
+		D3DCOLOR_ARGB(100, 120, 120, 255),
+		D3DCOLOR_ARGB(100, 255, 255, 120),
+	};
+
+	for(int i = 0; i < MaxMapGroups; ++i)
+	{
+		Group* group = &groups[i];
+		if(group->nodes.empty())
+			continue;
+		Node* lastNode = group->nodes[0];
+		for(int j = 1; j < group->nodes.size(); ++j)
+		{
+			Node* node = group->nodes[j];
+
+			D3DXVECTOR3 v[2];
+
+			v[0].x = 0.5f+lastNode->position.x;
+			v[0].z = 0.5f+lastNode->position.y;
+			v[0].y = 0.02f;
+			v[1].x = 0.5f+node->position.x;
+			v[1].z = 0.5f+node->position.y;
+			v[1].y = 0.02f;
+			
+			line->DrawTransform(v, 2, trans, colors[i]);
+
+			lastNode = node;
+		}
+	}
+
+#else
 	for(int i = 0; i < nodeCount; ++i)
 	{
 		Node* a = &nodes[i];
@@ -703,6 +777,7 @@ void Map::drawNodes(D3DXMATRIX* trans)
 			line->DrawTransform(v, 2, trans, color);
 		}
 	}
+#endif
 
 	line->End();
 
@@ -715,17 +790,31 @@ void Map::draw()
 
 	// setup projection matrix
 	D3DXMATRIX proj;
-	D3DXMatrixPerspectiveFovRH(&proj, 60.0f / 180 * 3.14f, 4.0f/3.0f, 1, 10000);
+	D3DXMatrixPerspectiveFovRH(&proj, 60.0f / 180 * 3.14f, 4.0f/3.0f, 0.2f, 1000);
 	getDevice()->SetTransform(D3DTS_PROJECTION, &proj);
 
 	// setup view matrix
 	D3DXMATRIX view;
-	D3DXVECTOR3 at, up(0,1,0);
+	D3DXVECTOR3 eye, at, up(0,1,0);
+	eye = cameraPosition;
 	at = cameraPosition;
+
 	at.x += 0;
-	at.z += 1;
+	at.z -= 1;
 	at.y = 0;
-	D3DXMatrixLookAtRH(&view, &cameraPosition, &at, &up);
+
+	if(camera_mode)
+	{
+		for(int i = 0; i < vehicleCount; ++i)
+		{
+			if(vehicles[i].type == VEHICLE_Vip)
+			{
+				eye = D3DXVECTOR3(vehicles[i].position.x, 1, vehicles[i].position.y);
+				at = D3DXVECTOR3(vehicles[i].dir.x, 0, vehicles[i].dir.y);
+			}
+		}
+	}
+	D3DXMatrixLookAtRH(&view, &eye, &at, &up);
 	getDevice()->SetTransform(D3DTS_VIEW, &view);
 
 	D3DXMATRIX matrix;
@@ -752,7 +841,7 @@ void Map::draw()
 	// setup lighting
 	D3DLIGHT9 light;
 	ZeroMemory(&light, sizeof(D3DLIGHT9) );
-	light.Type       = D3DLIGHT_POINT;
+	light.Type       = D3DLIGHT_DIRECTIONAL;
 	light.Position = cameraPosition;
 	light.Ambient.r  = 0.4f;
 	light.Ambient.g  = 0.4f;
@@ -789,7 +878,7 @@ void Map::draw()
  		Tower* t = towers[i];
 		if(t->mesh)
 		{
-			t->mesh->draw(D3DXVECTOR3(t->pos.x, 0, t->pos.y), D3DXVECTOR3());
+			t->mesh->draw(D3DXVECTOR3(t->pos.x, 0, t->pos.y));
 		}
 	}
 
@@ -813,7 +902,7 @@ void Map::draw()
 		}
 		if(!mesh)
 			continue;
-		mesh->draw(D3DXVECTOR3(v.position.x + 0.5f, 0, v.position.y + 0.5f), D3DXVECTOR3());
+		mesh->draw(D3DXVECTOR3(v.position.x + 0.5f, 0, v.position.y + 0.5f), D3DXVECTOR3(v.dir.x, 0, v.dir.y));
 	}
 
 	for(int i = 0; i < bullets.size(); ++i)

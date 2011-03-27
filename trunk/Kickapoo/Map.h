@@ -173,8 +173,9 @@ struct Tile
 	Node* node;
 	Mesh* mesh;
 	bool isStart;
+	bool isEnd;
 
-	Tile() : type(TILE_Ignore), random(0), texture(0), node(NULL), mesh(NULL), isStart(false)
+	Tile() : type(TILE_Ignore), random(0), texture(0), node(NULL), mesh(NULL), isStart(false), isEnd(false)
 	{
 	}
 };
@@ -200,6 +201,7 @@ public:
 
 	D3DXVECTOR3 cameraPosition;
 	Texture map;
+	bool camera_mode;
 
 public:
 	Map();
