@@ -98,7 +98,10 @@ Game::~Game(void)
 void Game::changeState(EGameState::TYPE state)
 {
 	state_ = state;
-
+	if(state_ == EGameState::Running)
+	{
+		map->setupGroups();
+	}
 }
 
 void Game::startGame()

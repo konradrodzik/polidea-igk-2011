@@ -6,6 +6,7 @@ Bullet::Bullet(BulletType type) : type(type), position(0,0), velocity(0,0)
 {
 	if(type == BulletType::BULLET_Rocket)
 	{
+		splashRange = 100;
 		texture = "gfx/player_selected.png";
 
 		smoke = new Smoke();
@@ -30,6 +31,7 @@ void Bullet::draw()
 
 Bullet* Vehicle::fire(D3DXVECTOR2 dir)
 {
+	fireTime = 0;
 	Bullet* bullet = new Bullet(bulletType);
 	bullet->position = position;
 	bullet->velocity = dir;
@@ -41,16 +43,21 @@ void Vehicle::update()
 	if(!group->started)
 		return;
 
-	D3DXVECTOR2 nextPos = group->nodes[currentNode + 1]->position;
-	if(currentNode + 1 < group->nodes.size())
-	{
-		dir = nextPos - group->nodes[currentNode]->position;
-	}
-	position = position + dir * velocity * g_Timer()->getFrameTime();
+	time += g_Timer()->getFrameTime();
 
-	if(D3DXVec2Length(&(nextPos - position))) 
+	if(time > startTime)
 	{
-		currentNode++;
+		D3DXVECTOR2 nextPos = group->nodes[currentNode + 1]->position;
+		if(currentNode + 1 < group->nodes.size())
+		{
+			dir = nextPos - group->nodes[currentNode]->position;
+		}
+		position = position + dir * velocity * g_Timer()->getFrameTime();
+
+		if(D3DXVec2Length(&(nextPos - position))) 
+		{
+			currentNode++;
+		}
 	}
 }
 
@@ -66,15 +73,6 @@ Map::~Map()
 
 void Map::setupGroups()
 {
-	groupCount = 4; //0;
-	D3DXVECTOR2 startPos = D3DXVECTOR2((g_Window()->getWidth() - GROUP_BUTTON_SIZE * groupCount) / 2, 
-		g_Window()->getHeight() - GROUP_BUTTON_SIZE);
-	float groupRay = GROUP_BUTTON_SIZE;
-	for(int i = 0; i < groupCount; ++i)
-	{
-		groups[i].pos = startPos + D3DXVECTOR2((groupRay + 10) * i, 0);
-	}
-
 	groupCount = 4;
 	int groupIndex = 0;
 	for (int i=0; i < 16; ++i) {
@@ -83,6 +81,14 @@ void Map::setupGroups()
 		vehicles[i].tile = Texture( i % 2 == 0 ? "tank_tile.png" : "smoketex.jpg" );
 	}
 	vehicleCount = 16;
+
+	D3DXVECTOR2 startPos = D3DXVECTOR2((g_Window()->getWidth() - GROUP_BUTTON_SIZE * groupCount) / 2, 
+		g_Window()->getHeight() - GROUP_BUTTON_SIZE);
+	float groupRay = GROUP_BUTTON_SIZE;
+	for(int i = 0; i < groupCount; ++i)
+	{
+		groups[i].pos = startPos + D3DXVECTOR2((groupRay + 10) * i, 0);
+	}
 }
 
 static void trimr(char * buffer) {
@@ -310,6 +316,20 @@ void Map::finalize()
 	}
 }
 
+void Map::startGroup(int i)
+{
+	groups[i].started = true;
+	for(int j = 0; j < 4; ++j)
+	{
+		Vehicle* vehicle = g_Game->routePlaner->buttons[i * 4 + j]->vehicle;
+		if(vehicle->type != VEHICLE_NONE)
+		{
+			// start vehicle every 2 seconds
+			vehicle->startTime = i * 2;
+		}
+	}
+}
+
 void Map::update()
 {
 	int dx, dy;
@@ -328,25 +348,102 @@ void Map::update()
 	// start groups
 	if((GetKeyState('Q') & 0x80) && !groups[0].started)
 	{
-		groups[0].started = true;
+		startGroup(0);
 	}
 	else if((GetKeyState('W') & 0x80) && !groups[1].started)
 	{
-		groups[1].started = true;
+		startGroup(1);
 	}
 	else if((GetKeyState('E') & 0x80) && !groups[2].started)
 	{
-		groups[2].started = true;
+		startGroup(2);
 	}
 	else if((GetKeyState('R') & 0x80) && !groups[3].started)
 	{
-		groups[3].started = true;
+		startGroup(3);
 	}
 
-	for(int i = 0; i < bullets.size(); ++i)
+	for(int i = 0; i < bullets.size(); )
 	{
 		bullets[i]->update();
 		// TODO: collisions
+		int x = bullets[i]->position.x, y = bullets[i]->position.y;
+		if(tiles[x][y].type == TileType::TILE_Block)
+		{
+			bullets.erase(bullets.begin() + i);
+			goto END;
+		}
+
+		for(int j = 0; j < vehicleCount; ++i)
+		{
+			if(vehicles[j].hp > 0)
+			{
+				float dist = D3DXVec2Length(&(bullets[i]->position - vehicles[j].position));
+				if(dist < 1)
+				{
+					vehicles[j].hp -= bullets[i]->demage();
+					// TODO: particle
+					bullets.erase(bullets.begin() + i);
+					goto END;
+				}
+			}
+		}
+
+		for(int j = 0; j < towers.size(); ++j)
+		{
+			if(towers[j]->hp > 0)
+			{
+				float dist = D3DXVec2Length(&(bullets[i]->position - towers[j]->pos));
+				if(dist < 1)
+				{
+					towers[j]->hp -= bullets[i]->demage();
+					// TODO: particle
+					bullets.erase(bullets.begin() + i);
+					goto END;
+				}
+			}
+		}
+
+		++i;
+END:
+		;
+	}
+
+	for(int j = 0; j < vehicleCount; ++j)
+	{
+		if(vehicles[j].hp > 0)
+		{
+			vehicles[j].update();
+		}
+	}
+
+	for(int i = 0; i < towers.size(); ++i)
+	{
+		towers[i]->update();
+		for(int j = 0; j < vehicleCount; ++i)
+		{
+			if(vehicles[j].hp > 0)
+			{
+				float dist = D3DXVec2Length(&(towers[i]->pos - vehicles[j].position));
+				if(dist < towers[i]->range)
+				{
+					Bullet* bullet = towers[i]->fire(vehicles[j].position - towers[i]->pos);
+					if(bullet != NULL)
+					{
+						bullets.push_back(bullet);
+					}
+				}
+
+				if(dist < vehicles[j].range)
+				{
+					Bullet* bullet = vehicles[j].fire(towers[i]->pos - vehicles[j].position);
+					if(bullet != NULL)
+					{
+						bullets.push_back(bullet);
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -409,10 +506,6 @@ void Map::drawTiles()
 					verts[k].xyz[2] += i;
 					verts[k].tex[0] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[0];
 					verts[k].tex[1] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[1];
-				}
-				tile.texture->set(0);
-				getDevice()->SetFVF(Vertex::FVF);
-				getDevice()->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, COUNT_OF(verts) - 2, verts, sizeof(verts[0]));
 				}
 				break;
 
@@ -544,7 +637,15 @@ void Map::draw()
 	// disable z
 	getDevice()->SetRenderState(D3DRS_ZENABLE, FALSE);
 
-	g_Direct3D()->setViewMatrix();
+	// TODO: draw vehicles
+
+	for(int i = 0; i < bullets.size(); ++i)
+	{
+		bullets[i]->draw();
+	}
+
+	g_ParticleSystem()->renderParticles();
+
 	getDevice()->SetTexture(0, NULL);
 	// draw groups buttons
 	for(int i = 0; i < groupCount; ++i)

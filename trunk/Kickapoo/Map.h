@@ -31,17 +31,32 @@ struct Bullet
 	D3DXVECTOR2 position, velocity;
 	Smoke* smoke;
 	Texture texture;
+	float splashRange;
 
 	Bullet(BulletType type);
 
 	void update();
 	void draw();
+
+	float demage()
+	{
+		if(type == BulletType::BULLET_Shot)
+		{
+			return 1;
+		}
+		else if(type == BulletType::BULLET_Rocket)
+		{
+			return 10;
+		}
+	}
 };
 
 enum VehicleType
 {
+	VEHICLE_NONE,
 	VEHICLE_Fast,
-	VEHICLE_Slow
+	VEHICLE_Slow,
+	VEHICLE_Vip
 };
 
 struct Group;
@@ -58,9 +73,14 @@ struct Vehicle
 	int currentNode;
 	float velocity;
 	D3DXVECTOR2 dir;
+	float range;
+	float fireTime;
+	float time;
+	float startTime;
 
 	Vehicle() : type(VEHICLE_Fast), bulletType(BULLET_Shot), model(NULL), group(NULL), currentNode(0), velocity(10)
 	{
+		hp = 300;
 	}
 
 	Bullet* fire(D3DXVECTOR2 dir);
@@ -88,9 +108,41 @@ enum TowerType
 struct Tower
 {
 	TowerType type;
+	D3DXVECTOR2 pos;
+	float fireTime;
+	float range;
+	float hp;
 
 	Tower() : type(TOWER_Fast)
 	{
+		hp = 300;
+		range = 200;
+	}
+
+	void update()
+	{
+		fireTime += g_Timer()->getFrameTime();
+	}
+
+	Bullet* fire(D3DXVECTOR2 dir)
+	{ 
+		if(type == TowerType::TOWER_Fast && fireTime > 0.5f)
+		{
+			fireTime = 0;
+			Bullet* bullet = new Bullet(BulletType::BULLET_Shot);
+			bullet->position = pos;
+			bullet->velocity = dir;
+			return bullet;
+		}
+		else if(type == TowerType::TOWER_Slow && fireTime > 2.0f)
+		{
+			fireTime = 0;
+			Bullet* bullet = new Bullet(BulletType::BULLET_Rocket);
+			bullet->position = pos;
+			bullet->velocity = dir;
+			return bullet;
+		}
+		return NULL;
 	}
 };
 
@@ -134,6 +186,7 @@ public:
 	Group groups[MaxMapGroups];
 	int groupCount;
 
+	std::vector<Tower*> towers;
 	std::vector<Bullet*> bullets;
 
 	D3DXVECTOR3 cameraPosition;
@@ -148,6 +201,7 @@ public:
 
 	void setupGroups();
 
+	void startGroup(int i);
 	void update();
 	void finalize();
 
