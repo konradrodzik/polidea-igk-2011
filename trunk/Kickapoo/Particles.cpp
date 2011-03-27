@@ -54,6 +54,11 @@ void ParticleSystem::renderParticles()
 	g_Direct3D()->getDevice()->SetRenderState(D3DRS_POINTSPRITEENABLE, true);
 	g_Direct3D()->getDevice()->SetRenderState(D3DRS_POINTSCALEENABLE, true);
 
+	getDevice()->SetRenderState( D3DRS_POINTSIZE_MIN, FloatToDWORD(1.0f) );    // Float value that specifies the minimum size of point primitives. Point primitives are clamped to this size during rendering. 
+    getDevice()->SetRenderState( D3DRS_POINTSCALE_A,  FloatToDWORD(0.0f) );    // Default 1.0
+    getDevice()->SetRenderState( D3DRS_POINTSCALE_B,  FloatToDWORD(0.0f) );    // Default 0.0
+    getDevice()->SetRenderState( D3DRS_POINTSCALE_C,  FloatToDWORD(1.0f) );    // Default 0.0
+
 	DWORD value[6];
 	getDevice()->GetRenderState(D3DRS_ALPHABLENDENABLE, &value[0]);
 	getDevice()->GetRenderState(D3DRS_SRCBLEND, &value[1]);

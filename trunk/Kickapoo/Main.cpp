@@ -41,9 +41,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 
 	g_Game = new Game();
 
-	Smoke* smoke = new Smoke();
-	g_ParticleSystem()->spawn(smoke);
-
 	while( !g_Window()->isDone() ) 
 	{			
 		g_Window()->updateApplication();
@@ -62,10 +59,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 
 		getDevice()->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
 			D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);			
-		getDevice()->BeginScene();		
-
-		smoke->pos.x = g_Mouse()->getX();
-		smoke->pos.y = g_Mouse()->getY();
+		getDevice()->BeginScene();
 
 		//texture.beginRenderToTexture();
 
