@@ -66,6 +66,7 @@ public:
 	void setRotation(float x, float y, float angle);
 
 	void drawLine(float sx, float sy, float ex, float ey, float size = 1, D3DCOLOR color = 0xFFFFFFFF);
+	void drawLineRHW(float sx, float sy, float ex, float ey, float size = 1, D3DCOLOR color = 0xFFFFFFFF);
 
 	void drawRectRHW(float x, float y, float width, float height, D3DCOLOR color = 0xFFFFFFFF);
 	void drawRect(float x, float y, float width, float height, D3DCOLOR color = 0xFFFFFFFF);
@@ -75,6 +76,13 @@ public:
 	void drawRects(const std::vector<D3DXVECTOR2> * positions, const std::vector<D3DXVECTOR2> * sizes, const std::vector<D3DCOLOR> * colors, int count);
 
 	void drawRect(
+		float x1, float y1, float u1, float v1, 
+		float x2, float y2, float u2, float v2, 
+		float x3, float y3, float u3, float v3,
+		float x4, float y4, float u4, float v4,
+		D3DCOLOR color = 0xFFFFFFFF);
+
+	void drawRectRHW(
 		float x1, float y1, float u1, float v1, 
 		float x2, float y2, float u2, float v2, 
 		float x3, float y3, float u3, float v3,

@@ -84,7 +84,7 @@ void Map::setupGroups()
 	groupCount = 4;
 	int groupIndex = 0;
 	for (int i=0; i < 16; ++i) {
-		//if (i > 3 && i % 4 == 0) groupIndex++;
+		if (i > 3 && i % 4 == 0) groupIndex++;
 		vehicles[i].group = &groups[groupIndex];
 		vehicles[i].tile = Texture( i % 2 == 0 ? "taxi.png" : "police.png" );
 		int nodeIndex = i % nodeCount;
