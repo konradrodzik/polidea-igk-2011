@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "Map.h"
+#include "Mesh.h"
 
 #define DEG2RAD 0.0174532925
 
@@ -61,5 +62,6 @@ protected:
 	Sound* typingSound;
 
 public:
-	Texture street, street_corner, street_cross;
+	Texture street, street_corner, street_cross3, street_cross;
+	Mesh tank1;
 };

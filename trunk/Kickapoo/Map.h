@@ -92,8 +92,9 @@ struct Tile
 	float random;
 	Texture* texture;
 	int offset;
+	Node* node;
 
-	Tile() : type(TILE_Ignore), random(0), texture(0)
+	Tile() : type(TILE_Ignore), random(0), texture(0), node(NULL)
 	{
 	}
 };
@@ -127,6 +128,7 @@ public:
 
 	void draw();
 	void drawTiles();
+	void drawNodes(D3DXMATRIX* trans);
 
 public:
 
