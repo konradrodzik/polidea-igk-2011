@@ -68,12 +68,6 @@ void Mesh::draw(const D3DXVECTOR3& position, const D3DXVECTOR3& dir)
 	D3DXVec3Cross(&tan, &dir, &up);
 	D3DXMatrixIdentity(&trans);
 
-	float angle = acosf(dir.x);
-	if(dir.x == 0 || tanf(dir.z/dir.x) < 0)
-		angle += 3.14;
-	D3DXMatrixRotationY(&trans, angle);
-	getDevice()->SetTransform(D3DTS_WORLD2, &trans);
-
 	for(DWORD i=0; i<materials.size(); i++)
 	{
 		textures[i].set(0);

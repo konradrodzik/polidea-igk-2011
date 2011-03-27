@@ -19,11 +19,11 @@ Smoke::~Smoke(void)
 void Smoke::spawn()
 {
 	particle_vertex v;
-	v.pos = pos + D3DXVECTOR3(RandomFloat(-5, 5), RandomFloat(-5, 5), 0);
+	v.pos = pos + D3DXVECTOR3(RandomFloat(-0.01f, 0.01f), 0, RandomFloat(-0.01f, 0.01f));
 	
 	float c = RandomFloat(0.2, 1);
 	v.color = D3DXCOLOR(c, c, c, 1);
-	v.size = RandomFloat(2, 3);
+	v.size = RandomFloat(0.05, 0.1);
 
 	Properties p;
 	p.lifeTime = 1;
@@ -40,7 +40,7 @@ bool Smoke::update()
 	}
 
 	elapsedTime += g_Timer()->getFrameTime();
-	if(elapsedTime > 0.01f && enabled)
+	if(elapsedTime > 0.05f && enabled)
 	{
 		spawn();
 		elapsedTime = 0;
@@ -100,7 +100,7 @@ void Nova::spawn(D3DCOLOR c)
 	v.pos = pos;
 	
 	v.color = c;
-	v.size = RandomFloat(2, 3);
+	v.size = RandomFloat(0.1, 0.1);
 
 	Properties p;
 	p.lifeTime = t;

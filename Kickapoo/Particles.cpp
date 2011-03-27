@@ -74,7 +74,7 @@ void ParticleSystem::renderParticles()
 	getDevice()->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_DIFFUSE);
 	getDevice()->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_TEXTURE);
 
-	g_Renderer()->setIdentity();
+	//g_Renderer()->setIdentity();
 	for(std::vector<ParticleEffect*>::const_iterator it = instances.begin() ; it != instances.end() ; ++it)
 	{
 		(*it)->draw(vb, chunk);

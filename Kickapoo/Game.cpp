@@ -1,4 +1,4 @@
-#include "Common.h"
+ï»¿#include "Common.h"
 #include "Game.h"
 
 Sound* g_fireSound = NULL;
@@ -8,7 +8,7 @@ static float _fake;
 static float _selectionAlpha = 0.0f;
 static float _splashZeroElementY = 0.0f;
 static float _splashOneElementY = 600.0f;
-string _introText = "Jesteœ komendantem komisariatu policji w siedlcach :P. \nMusisz chroniæ premiera zamieszanego w afere EURO2012.\n Dajesz dajesz, nie ma lipy!.";
+string _introText = "Jestes komendantem komisariatu policji w siedlcach :P. \nMusisz chronic premiera zamieszanego w afere EURO2012.\n Dajesz dajesz, nie ma lipy!.";
 RECT _introRect;
 RECT _screenMiddleRect;
 
@@ -46,7 +46,7 @@ ringc("gfx/circle_blue.png")
 	g_Game = this;
 	
 	loadLevel();
-	changeState(EGameState::RoutePlaning);
+	changeState(EGameState::Intro);
 
 	explosionSound = g_Audio()->loadSound("sfx/explosion.wav");
 	g_fireSound = g_Audio()->loadSound("sfx/fire.wav");
@@ -144,25 +144,25 @@ void Game::update()
 
 		if(g_Input()->buttonClicked(0)) 
 		{
-			D3DXVECTOR3 p = map->cameraPosition;
+			/*D3DXVECTOR3 p = map->cameraPosition;
 			p.y = 10;
 
-			/*Fire* fire = new Fire( p);
-			g_ParticleSystem()->spawn(fire);*/
+			//Fire* fire = new Fire( p);
+			//g_ParticleSystem()->spawn(fire);
 
 			Bullet* bullet = new Bullet(BulletType::BULLET_Rocket);
 			bullet->position.x = p.x;
 			bullet->position.y = p.y;
 			bullet->velocity = D3DXVECTOR2(RandomFloat(0, 1), RandomFloat(0, 1));
 
-			map->bullets.push_back(bullet);
+			map->bullets.push_back(bullet);*/
 		}
 		else if(g_Input()->buttonClicked(1)) 
 		{
 			D3DXVECTOR3 p = map->cameraPosition;
-			p.y = -100;
+			p.y = 0;
 
-			Nova* nova = new Nova(p, 0.5f, 50);
+			Nova* nova = new Nova(p, 0.3f, 2);
 			g_ParticleSystem()->spawn(nova);
 		}
 	}
