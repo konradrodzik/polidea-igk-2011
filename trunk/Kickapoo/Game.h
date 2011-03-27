@@ -69,6 +69,6 @@ public:
 	Texture grass;
 	Mesh tank1;
 	Mesh ap_b, ap_d, ap_c;
-	Mesh vip;
+	Mesh police, vip;
 	Mesh tower;
 };

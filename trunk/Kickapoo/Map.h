@@ -113,8 +113,9 @@ struct Tower
 	float fireTime;
 	float range;
 	float hp;
+	Mesh* mesh;
 
-	Tower() : type(TOWER_Fast)
+	Tower() : type(TOWER_Fast), mesh(NULL), range(0), fireTime(0), pos(0,0)
 	{
 		hp = 300;
 		range = 200;

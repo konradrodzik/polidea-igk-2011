@@ -57,7 +57,7 @@ void Mesh::release()
 
 void Mesh::draw(const D3DXVECTOR3& position, const D3DXVECTOR3& dir)
 {
-	getDevice()->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_FLAT);
+	//getDevice()->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_FLAT);
 
 	D3DXMATRIX trans;
 	D3DXMatrixTranslation(&trans, position.x, position.y, position.z);

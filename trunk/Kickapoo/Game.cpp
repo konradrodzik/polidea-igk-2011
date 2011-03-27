@@ -35,7 +35,8 @@ grass("gfx/grass.png"),
 ap_b("models/ap_b3.x"),
 ap_c("models/ap_c.x"),
 ap_d("models/ap_d.x"),
-vip("models/car.x"),
+vip("models/vip.x"),
+police("models/car.x"),
 tower("models/tower.x")
 {
 	g_Game = this;

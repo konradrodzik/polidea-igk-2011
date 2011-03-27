@@ -84,6 +84,8 @@ void Map::setupGroups()
 	}
 	vehicleCount = 16;
 
+	vehicles[rand() % vehicleCount].type = VEHICLE_Vip;
+
 	D3DXVECTOR2 startPos = D3DXVECTOR2((g_Window()->getWidth() - GROUP_BUTTON_SIZE * groupCount) / 2, 
 		g_Window()->getHeight() - GROUP_BUTTON_SIZE);
 	float groupRay = GROUP_BUTTON_SIZE;
@@ -154,6 +156,18 @@ Map* Map::load( const std::string& name )
 				else if(bytes[0] <= 80 && bytes[1] <= 80 && bytes[2] <= 80) {
 					map->tiles[j][h].type = TILE_Block;
 					map->tiles[j][h].random = 1;// + 0.5 * (float)rand() / RAND_MAX;
+				}
+				else if(bytes[0] <= 80 && bytes[1] > 80 && bytes[2] <= 80) {
+						map->tiles[j][h].texture = &g_Game->grass;
+					if(i & 2 || j & 2)
+						continue;
+
+					Tower* tower = new Tower;
+					map->towers.push_back(tower);
+					tower->type = TOWER_Fast;
+					tower->pos = D3DXVECTOR2(j,h);
+					tower->hp = 100;
+					tower->mesh = &g_Game->tower;
 				}
 			}
 			fread(bytes, pad-byteWidth, 1, file);
@@ -257,8 +271,10 @@ void Map::finalize()
 			}
 			else if(cur.type == TILE_Block)
 			{
+						cur.texture = &g_Game->grass;
 					if(i & 2 || j & 2)
 						continue;
+
 					switch(rand() % 3)
 					{
 					case 0:
@@ -368,9 +384,9 @@ void Map::update()
 	int scroll;
 	g_Input()->getMovement(dx, dy);
 	g_Input()->getScroll(scroll);
-	float sensitivity = 8;
+	float sensitivity = 4;
 	cameraPosition.x -= dx * sensitivity * g_Timer()->getFrameTime(); 
-	cameraPosition.z += dy * sensitivity * g_Timer()->getFrameTime();
+	cameraPosition.z -= dy * sensitivity * g_Timer()->getFrameTime();
 	cameraPosition.x = max(0, min(width, cameraPosition.x));
 	cameraPosition.z = max(0, min(height, cameraPosition.z));
 
@@ -408,7 +424,7 @@ void Map::update()
 			goto END;
 		}
 
-		for(int j = 0; j < vehicleCount; ++i)
+		for(int j = 0; j < vehicleCount; ++j)
 		{
 			if(vehicles[j].hp > 0)
 			{
@@ -469,7 +485,7 @@ END:
 	for(int i = 0; i < towers.size(); ++i)
 	{
 		towers[i]->update();
-		for(int j = 0; j < vehicleCount; ++i)
+		for(int j = 0; j < vehicleCount; ++j)
 		{
 			if(vehicles[j].hp > 0)
 			{
@@ -540,6 +556,13 @@ void Map::drawTiles()
 
 			switch(tile.type)
 			{
+			case TILE_Block:
+				if(tile.mesh)
+				{
+					tile.mesh->draw(D3DXVECTOR3(j, 0, i), D3DXVECTOR3());
+					tile.texture = &g_Game->grass;
+				}
+
 			case TILE_Street:
 			case TILE_Water:
 			case TILE_Grass:
@@ -562,27 +585,6 @@ void Map::drawTiles()
 				getDevice()->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(verts[0]));
 				break;
 				}
-			case TILE_Block:
-				{
-				Vertex verts[COUNT_OF(RectVerts)];
-				for(int k = 0; k < COUNT_OF(RectVerts); ++k)
-				{
-					verts[k] = RectVerts[k];
-					verts[k].xyz[0] += j;
-					verts[k].xyz[2] += i;
-					verts[k].tex[0] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[0];
-					verts[k].tex[1] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[1];
-				}
-				g_Game->grass.set(0);
-				getDevice()->SetFVF(Vertex::FVF);
-				getDevice()->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(verts[0]));
-
-					if(!tile.mesh)
-						continue;
-
-				tile.mesh->draw(D3DXVECTOR3(j, 0, i), D3DXVECTOR3());
-				}
-				break;
 			}
 		}
 	}
@@ -692,8 +694,6 @@ void Map::draw()
 	// draw map
 	drawTiles();
 
-	g_Game->vip.draw(D3DXVECTOR3(10,1,10), D3DXVECTOR3());
-
 	// setup drawing options
 	getDevice()->SetRenderState(D3DRS_LIGHTING, FALSE);
 	getDevice()->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
@@ -704,12 +704,36 @@ void Map::draw()
 	// disable z
 	getDevice()->SetRenderState(D3DRS_ZENABLE, FALSE);
 
-	// TODO: draw vehicles
+	for(int i = 0; i < towers.size(); ++i)
+	{
+ 		Tower* t = towers[i];
+		if(t->mesh)
+		{
+			t->mesh->draw(D3DXVECTOR3(t->pos.x, 0, t->pos.y), D3DXVECTOR3());
+		}
+	}
 
 	for(int i = 0; i < vehicleCount; ++i)
 	{
 		Vehicle& v = vehicles[i];
-		g_Game->vip.draw(D3DXVECTOR3(v.position.x + 0.5f, 0, v.position.y + 0.5f), D3DXVECTOR3());
+		Mesh* mesh = NULL;
+		switch(v.type)
+		{
+		case VEHICLE_NONE:
+			break;
+
+		case VEHICLE_Fast:
+		case VEHICLE_Slow:
+			mesh = &g_Game->police;
+			break;
+
+		case VEHICLE_Vip:
+			mesh = &g_Game->vip;
+			break;
+		}
+		if(!mesh)
+			continue;
+		mesh->draw(D3DXVECTOR3(v.position.x + 0.5f, 0, v.position.y + 0.5f), D3DXVECTOR3());
 	}
 
 	for(int i = 0; i < bullets.size(); ++i)
