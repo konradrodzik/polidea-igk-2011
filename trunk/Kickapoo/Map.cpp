@@ -72,6 +72,7 @@ Map::Map() : cameraPosition(20,3,15)
 {
 	width = height = 0;
 	nodeCount = vehicleCount = 0;
+	startNode = NULL;
 }
 
 Map::~Map()
@@ -161,12 +162,20 @@ Map* Map::load( const std::string& name )
 				if(bytes[0] > 80 && bytes[1] <= 80 && bytes[2] <= 80) {
 					map->tiles[j][h].type = TILE_Street;
 				}
+				else if(bytes[0] > 80 && bytes[1] > 80 && bytes[2] <= 80) {
+					map->tiles[j][h].type = TILE_Street;
+					map->tiles[j][h].isStart = true;
+				}
 				else if(bytes[0] <= 80 && bytes[1] <= 80 && bytes[2] > 80) {
 					map->tiles[j][h].type = TILE_Water;
 				}
 				else if(bytes[0] <= 80 && bytes[1] <= 80 && bytes[2] <= 80) {
 					map->tiles[j][h].type = TILE_Block;
 					map->tiles[j][h].random = 1;// + 0.5 * (float)rand() / RAND_MAX;
+				}
+				else if(bytes[0] >80 && bytes[1] <= 80 && bytes[2]> 80) {
+					map->tiles[j][h].type = TILE_BUNKIER;
+					map->tiles[j][h].random = 1;
 				}
 				else if(bytes[0] <= 80 && bytes[1] > 80 && bytes[2] <= 80) {
 						map->tiles[j][h].texture = &g_Game->grass;
@@ -279,6 +288,18 @@ void Map::finalize()
 				cur.node = &nodes[nodeCount++];
 				cur.node->position = D3DXVECTOR2(j,i);
 				cur.node->otherNodes.clear();
+
+				if(cur.isStart)
+				{
+					startNode = cur.node;
+				}
+			}
+			else if(cur.type == TILE_BUNKIER)
+			{				
+				cur.texture = &g_Game->grass;
+					if(i & 2 || j & 2)
+						continue;
+					cur.mesh = &g_Game->hangar;
 			}
 			else if(cur.type == TILE_Block)
 			{
@@ -325,7 +346,7 @@ void Map::finalize()
 			if(!node)
 				continue;
 			
-			if(cur.texture != &g_Game->street_cross && cur.texture != &g_Game->street_cross3 && cur.texture != &g_Game->street_corner)
+			if(cur.texture == &g_Game->street)
 			{
 				if(!lastNode)
 					lastNode = node;
@@ -358,7 +379,7 @@ void Map::finalize()
 			if(!node)
 				continue;
 
-			if(cur.texture != &g_Game->street_cross && cur.texture != &g_Game->street_cross3 && cur.texture != &g_Game->street_corner)
+			if(cur.texture == &g_Game->street)
 			{
 				if(!lastNode)
 					lastNode = node;
@@ -570,6 +591,7 @@ void Map::drawTiles()
 
 			switch(tile.type)
 			{
+			case TILE_BUNKIER:
 			case TILE_Block:
 				if(tile.mesh)
 				{
@@ -654,10 +676,10 @@ void Map::draw()
 
 	// setup view matrix
 	D3DXMATRIX view;
-	D3DXVECTOR3 at, up(0,0,1);
+	D3DXVECTOR3 at, up(0,1,0);
 	at = cameraPosition;
 	at.x += 0;
-	// at.z += 3;
+	at.z += 1;
 	at.y = 0;
 	D3DXMatrixLookAtRH(&view, &cameraPosition, &at, &up);
 	getDevice()->SetTransform(D3DTS_VIEW, &view);

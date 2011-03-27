@@ -37,7 +37,8 @@ ap_c("models/ap_c.x"),
 ap_d("models/ap_d.x"),
 vip("models/vip.x"),
 police("models/car.x"),
-tower("models/tower.x")
+tower("models/tower.x"),
+hangar("models/hangar_mesh.x")
 {
 	g_Game = this;
 	
