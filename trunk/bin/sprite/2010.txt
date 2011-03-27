@@ -1,0 +1,4 @@
+128 2 582 199
+sprite/2010.jpg
+sprite/2010_second.jpg
+
