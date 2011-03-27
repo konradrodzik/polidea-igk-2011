@@ -9,6 +9,8 @@
 #define buttonMarginX  20
 #define buttonMarginY  20
 
+#define mapScale 11
+
 class RoutePlaner {
 public:
 	struct Button {
@@ -29,6 +31,11 @@ public:
 	unsigned int lastClickedButtonIndex;
 	Game *game_;
 	Texture startGame;
+	Group *selectedGroup;
+	int mapX;
+	int mapY;
+	int mapHeight;
+	int mapWidth;
 public:
 	RoutePlaner();
 	void placeButtons();

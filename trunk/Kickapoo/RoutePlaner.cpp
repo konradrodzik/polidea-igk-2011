@@ -45,6 +45,7 @@ void RoutePlaner::placeButtons() {
 RoutePlaner::RoutePlaner()
 	: startGame("start.png")
 {
+	selectedGroup = NULL;
 	lastClickedButton = NULL;
 	lastClickedButtonIndex = 0;
 	buttonCount = 0;
@@ -65,6 +66,7 @@ void RoutePlaner::update()
 			if (button->mouseInside()) {
 				clickedButtonIndex = i;
 				clickedButton = button;
+				selectedGroup = button->vehicle->group;
 				break;
 			}
 		}
@@ -101,8 +103,12 @@ void RoutePlaner::update()
 			//! start
 			if (Mouse::getSingletonPtr()->getX() > 800 - 146 && Mouse::getSingletonPtr()->getY() > 600-32) {
 				game_->changeState(EGameState::Running);
-			} else {
+			} else if (selectedGroup) {
 			//! route
+				if ((Mouse::getSingletonPtr()->getX() > mapX &&
+					Mouse::getSingletonPtr()->getX() < mapX + mapWidth) && ( Mouse::getSingletonPtr()->getY() > mapY && Mouse::getSingletonPtr()->getY() < (mapY + mapHeight)) ) {
+					printf("dupa");
+				}
 			}
 		}
 	}
@@ -128,15 +134,28 @@ void RoutePlaner::draw()
 	g_Renderer()->drawRectRHW(800-146, 600 - 32, 146, 32);
 
 	//! map
-	int mapWidth = game_->map->width * 6;
-	int mapHeight = mapWidth * game_->map->height / (float)game_->map->width;
+	mapWidth = game_->map->width * mapScale;
+	mapHeight = game_->map->height * mapScale;
 	game_->map->map.set();
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
-	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
 	getDevice()->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_FLAT);
-	g_Renderer()->drawRectRHW(800 - mapWidth, 600 - 32 - mapHeight, mapWidth, mapHeight);
+	mapX = 800 - mapWidth + 120;
+	mapY = 600 - 32 - mapHeight;
+	g_Renderer()->drawRectRHW(mapX, mapY, mapWidth, mapHeight);
+	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+
+
+	if (selectedGroup && selectedGroup->nodes.size() > 0) {
+		D3DXVECTOR2 lastPos = selectedGroup->nodes[0]->position;
+		D3DXVECTOR2 nextPos;
+		D3DXVec2Add(&nextPos, &lastPos, &D3DXVECTOR2(5, 5));
+		for (int i=1; i < selectedGroup->nodes.size(); ++i) {
+			nextPos = selectedGroup->nodes[i]->position;
+			g_Renderer()->drawLine(mapX + lastPos.x * mapScale, mapY + lastPos.y * mapScale, mapX + nextPos.x * mapScale, mapY + nextPos.y * mapScale, 5);
+		}
+	}
 }

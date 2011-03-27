@@ -152,7 +152,7 @@ void Renderer::drawRectRHW(float x, float y, float width, float height, D3DCOLOR
 	v[0].rhw = 1.0f;
 	v[0].color = color;
 	v[0].tu = 0.0f;
-	v[0].tv = 1.0f;
+	v[0].tv = 0.0f;
 
 	v[1].pos.x = x;
 	v[1].pos.y = y + height;
@@ -160,7 +160,7 @@ void Renderer::drawRectRHW(float x, float y, float width, float height, D3DCOLOR
 	v[1].rhw = 1.0f;
 	v[1].color = color;
 	v[1].tu = 0.0f;
-	v[1].tv = 0.0f;		
+	v[1].tv = 1.0f;		
 
 	v[2].pos.x = x + width;
 	v[2].pos.y = y;
@@ -168,7 +168,7 @@ void Renderer::drawRectRHW(float x, float y, float width, float height, D3DCOLOR
 	v[2].rhw = 1.0f;
 	v[2].color = color;
 	v[2].tu = 1.0f;
-	v[2].tv = 1.0f;		
+	v[2].tv = 0.0f;		
 
 	v[3].pos.x = x + width;
 	v[3].pos.y = y + height;
@@ -176,7 +176,7 @@ void Renderer::drawRectRHW(float x, float y, float width, float height, D3DCOLOR
 	v[3].rhw = 1.0f;
 	v[3].color = color;
 	v[3].tu = 1.0f;
-	v[3].tv = 0.0f;
+	v[3].tv = 1.0f;
 
 	vb->pushData(sizeof(v), v, chunk);
 
