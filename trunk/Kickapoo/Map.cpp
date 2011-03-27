@@ -1,14 +1,80 @@
 #include "Common.h"
 
+#define GROUP_BUTTON_SIZE 50
+
+Bullet::Bullet(BulletType type) : type(type), position(0,0), velocity(0,0)
+{
+	if(type == BulletType::BULLET_Rocket)
+	{
+		texture = "gfx/player_selected.png";
+
+		smoke = new Smoke();
+		g_ParticleSystem()->spawn(smoke);
+	}
+}
+
+void Bullet::update()
+{
+	position = position + velocity * g_Timer()->getFrameTime();
+	if(type == BulletType::BULLET_Rocket)
+	{
+		smoke->pos = D3DXVECTOR3(position.x, position.y, 0);
+	}
+}
+
+void Bullet::draw()
+{
+	texture.set();
+	g_Renderer()->drawRect(position.x, position.y, 10, 10);
+}
+
+Bullet* Vehicle::fire(D3DXVECTOR2 dir)
+{
+	Bullet* bullet = new Bullet(bulletType);
+	bullet->position = position;
+	bullet->velocity = dir;
+	return bullet;
+}
+
+void Vehicle::update()
+{
+	if(!group->started)
+		return;
+
+	D3DXVECTOR2 nextPos = group->nodes[currentNode + 1]->position;
+	if(currentNode + 1 < group->nodes.size())
+	{
+		dir = nextPos - group->nodes[currentNode]->position;
+	}
+	position = position + dir * velocity * g_Timer()->getFrameTime();
+
+	if(D3DXVec2Length(&(nextPos - position))) 
+	{
+		currentNode++;
+	}
+}
+
 Map::Map() : cameraPosition(25, 14, 3)
 {
 	width = height = 0;
 	nodeCount = vehicleCount = 0;
-	groupCount = 0;
+	
 }
 
 Map::~Map()
 {
+}
+
+void Map::setupGroups()
+{
+	groupCount = 4; //0;
+	D3DXVECTOR2 startPos = D3DXVECTOR2((g_Window()->getWidth() - GROUP_BUTTON_SIZE * groupCount) / 2, 
+		g_Window()->getHeight() - GROUP_BUTTON_SIZE);
+	float groupRay = GROUP_BUTTON_SIZE;
+	for(int i = 0; i < groupCount; ++i)
+	{
+		groups[i].pos = startPos + D3DXVECTOR2((groupRay + 10) * i, 0);
+	}
 }
 
 static void trimr(char * buffer) {
@@ -240,6 +306,30 @@ void Map::update()
 		cameraPosition.z = max(cameraPosition.z - 3, 2);
 	else if(scroll < 0)
 		cameraPosition.z = min(cameraPosition.z + 3, 100);
+
+	// start groups
+	if((GetKeyState('Q') & 0x80) && !groups[0].started)
+	{
+		groups[0].started = true;
+	}
+	else if((GetKeyState('W') & 0x80) && !groups[1].started)
+	{
+		groups[1].started = true;
+	}
+	else if((GetKeyState('E') & 0x80) && !groups[2].started)
+	{
+		groups[2].started = true;
+	}
+	else if((GetKeyState('R') & 0x80) && !groups[3].started)
+	{
+		groups[3].started = true;
+	}
+
+	for(int i = 0; i < bullets.size(); ++i)
+	{
+		bullets[i]->update();
+		// TODO: collisions
+	}
 }
 
 #define COUNT_OF(x) (sizeof(x)/sizeof((x)[0]))
@@ -440,5 +530,13 @@ void Map::draw()
 	// disable z
 	getDevice()->SetRenderState(D3DRS_ZENABLE, FALSE);
 
-
+	g_Direct3D()->setViewMatrix();
+	getDevice()->SetTexture(0, NULL);
+	// draw groups buttons
+	for(int i = 0; i < groupCount; ++i)
+	{
+		g_Renderer()->drawRectRHW(groups[i].pos.x - GROUP_BUTTON_SIZE / 2,
+			groups[i].pos.y - GROUP_BUTTON_SIZE / 2, GROUP_BUTTON_SIZE, GROUP_BUTTON_SIZE, 
+			groups[i].started ? D3DXCOLOR(0, 1, 0, 1) : D3DXCOLOR(1, 0, 0, 1));
+	}
 }

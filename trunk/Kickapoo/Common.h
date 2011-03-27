@@ -69,3 +69,4 @@ extern Game* g_Game;
 //#include "Physics.h"
 
 extern Game* g_Game;
+extern bool lmousebutton;

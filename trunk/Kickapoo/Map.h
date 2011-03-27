@@ -1,6 +1,8 @@
 #pragma once
 #include "Common.h"
 
+class Smoke;
+
 const int MaxMapSize = 800;
 const int MaxMapNodes = 400;
 const int MaxMapVehicles = 16;
@@ -26,10 +28,13 @@ struct Bullet
 {
 	BulletType type;
 	D3DXVECTOR2 position, velocity;
+	Smoke* smoke;
+	Texture texture;
 
-	Bullet() : type(BULLET_Shot), position(0,0), velocity(0,0)
-	{
-	}
+	Bullet(BulletType type);
+
+	void update();
+	void draw();
 };
 
 enum VehicleType
@@ -49,15 +54,28 @@ struct Vehicle
 	void* model;
 	D3DXVECTOR2 position;
 	Group* group;
+	int currentNode;
+	float velocity;
+	D3DXVECTOR2 dir;
 
-	Vehicle() : type(VEHICLE_Fast), bulletType(BULLET_Shot), model(NULL), group(NULL)
+	Vehicle() : type(VEHICLE_Fast), bulletType(BULLET_Shot), model(NULL), group(NULL), currentNode(0), velocity(10)
 	{
 	}
+
+	Bullet* fire(D3DXVECTOR2 dir);
+	void update();
 };
 
 struct Group
 {
 	vector<Node*> nodes;
+	bool started;
+	D3DXVECTOR2 pos;
+
+	Group()
+	{
+		started = false;
+	}
 };
 
 enum TowerType
@@ -114,6 +132,8 @@ public:
 	Group groups[MaxMapGroups];
 	int groupCount;
 
+	std::vector<Bullet*> bullets;
+
 	D3DXVECTOR3 cameraPosition;
 
 public:
@@ -122,6 +142,8 @@ public:
 	~Map();
 
 	static Map* load(const std::string& name);
+
+	void setupGroups();
 
 	void update();
 	void finalize();

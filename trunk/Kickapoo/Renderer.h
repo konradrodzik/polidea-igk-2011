@@ -2,6 +2,7 @@
 #include "Common.h"
 
 #define FVF_TEX (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1)
+#define FVF_TEX_RHW (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1)
 
 struct BufferChunk
 {
@@ -37,6 +38,14 @@ struct vertex
 	float tu, tv;
 };
 
+struct vertexRHW
+{
+	D3DXVECTOR3 pos;
+	float rhw;
+	D3DCOLOR color;
+	float tu, tv;
+};
+
 class Renderer : public Singleton<Renderer>
 {
 private:
@@ -58,6 +67,7 @@ public:
 
 	void drawLine(float sx, float sy, float ex, float ey, float size = 1, D3DCOLOR color = 0xFFFFFFFF);
 
+	void drawRectRHW(float x, float y, float width, float height, D3DCOLOR color);
 	void drawRect(float x, float y, float width, float height, D3DCOLOR color = 0xFFFFFFFF);
 	void drawRect(float x, float y, float width, float height, 
 		float u1, float v1, float u2, float v2, D3DCOLOR color = 0xFFFFFFFF);

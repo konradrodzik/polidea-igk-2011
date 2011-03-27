@@ -142,6 +142,49 @@ void Renderer::drawRect(float x, float y, float width, float height, D3DCOLOR co
 	getDevice()->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
 }
 
+void Renderer::drawRectRHW(float x, float y, float width, float height, D3DCOLOR color)
+{
+	vertexRHW v[4];
+	
+	v[0].pos.x = x;
+	v[0].pos.y = y;
+	v[0].pos.z = 0;
+	v[0].rhw = 1.0f;
+	v[0].color = color;
+	v[0].tu = 0.0f;
+	v[0].tv = 1.0f;
+
+	v[1].pos.x = x;
+	v[1].pos.y = y + height;
+	v[1].pos.z = 0;
+	v[1].rhw = 1.0f;
+	v[1].color = color;
+	v[1].tu = 0.0f;
+	v[1].tv = 0.0f;		
+
+	v[2].pos.x = x + width;
+	v[2].pos.y = y;
+	v[2].pos.z = 0;
+	v[2].rhw = 1.0f;
+	v[2].color = color;
+	v[2].tu = 1.0f;
+	v[2].tv = 1.0f;		
+
+	v[3].pos.x = x + width;
+	v[3].pos.y = y + height;
+	v[3].pos.z = 0;
+	v[3].rhw = 1.0f;
+	v[3].color = color;
+	v[3].tu = 1.0f;
+	v[3].tv = 0.0f;
+
+	vb->pushData(sizeof(v), v, chunk);
+
+	getDevice()->SetFVF(FVF_TEX_RHW);
+	getDevice()->SetStreamSource(0, vb->getBuffer(), chunk.offset, sizeof(vertexRHW));
+	getDevice()->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
+}
+
 void Renderer::drawRects(const std::vector<D3DXVECTOR2> * positions, const std::vector<D3DXVECTOR2> * sizes, const std::vector<D3DCOLOR> * colors, int count)
 {
 	vertex * v;

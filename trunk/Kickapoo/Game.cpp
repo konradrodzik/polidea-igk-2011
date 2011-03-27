@@ -77,6 +77,9 @@ void Game::loadLevel()
 	delete map;
 	map = NULL;
 	map = Map::load("map0.bmp");
+
+	// TODO:
+	map->setupGroups();
 }
 
 Game::~Game(void)
@@ -94,6 +97,8 @@ void Game::startGame()
 {
 	loadLevel();
 	changeState(EGameState::Running);
+
+	
 }
 
 void Game::update()
