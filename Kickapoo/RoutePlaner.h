@@ -36,6 +36,9 @@ public:
 	int mapY;
 	int mapHeight;
 	int mapWidth;
+
+	Texture background;
+
 public:
 	RoutePlaner();
 	void placeButtons();

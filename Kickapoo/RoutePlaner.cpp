@@ -43,7 +43,7 @@ void RoutePlaner::placeButtons() {
 	}
 }
 RoutePlaner::RoutePlaner()
-	: startGame("start.png")
+	: startGame("start.png"), background("menu_background.png")
 {
 	selectedGroup = NULL;
 	lastClickedButton = NULL;
@@ -144,15 +144,20 @@ void RoutePlaner::update()
 
 void RoutePlaner::draw()
 {
+	// background
+	background.set();
+	g_Renderer()->drawRectRHW(0, 0, 800, 600);
+
+
 	for (int i=0; i < buttonCount; ++i) {
 		Button *button = buttons[i];
 		Texture &texture = button->vehicle->tile;
 		texture.set();
 	
 		if (i == lastClickedButtonIndex) {
-			g_Renderer()->drawRectRHW(button->rect.left - 10, button->rect.top - 10, buttonSize + 20, buttonSize + 20);
+			g_Renderer()->drawRectRHW(20 + button->rect.left - 10, 20 + button->rect.top - 10, buttonSize + 20, buttonSize + 20);
 		} else {
-			g_Renderer()->drawRectRHW(button->rect.left, button->rect.top, buttonSize, buttonSize);
+			g_Renderer()->drawRectRHW(20 + button->rect.left, 20 + button->rect.top, buttonSize, buttonSize);
 		}
 	}
 
@@ -174,6 +179,7 @@ void RoutePlaner::draw()
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+
 
 	if (selectedGroup && selectedGroup->nodes.size() > 0) {
 		D3DXVECTOR2 lastPos = selectedGroup->nodes[0]->position;
