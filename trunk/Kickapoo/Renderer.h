@@ -67,7 +67,7 @@ public:
 
 	void drawLine(float sx, float sy, float ex, float ey, float size = 1, D3DCOLOR color = 0xFFFFFFFF);
 
-	void drawRectRHW(float x, float y, float width, float height, D3DCOLOR color);
+	void drawRectRHW(float x, float y, float width, float height, D3DCOLOR color = 0xFFFFFFFF);
 	void drawRect(float x, float y, float width, float height, D3DCOLOR color = 0xFFFFFFFF);
 	void drawRect(float x, float y, float width, float height, 
 		float u1, float v1, float u2, float v2, D3DCOLOR color = 0xFFFFFFFF);

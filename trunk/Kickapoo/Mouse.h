@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-
+#include "Window.h"
 class Mouse : public Singleton<Mouse>
 {
 	float x, y;
@@ -22,6 +22,6 @@ public:
 	}
 
 	float getX() { return x; }
-	float getY() { return y; }
+	float getY() { return Window::getSingletonPtr()->getHeight() - y; }
 };
 DefineAccessToSingleton(Mouse);

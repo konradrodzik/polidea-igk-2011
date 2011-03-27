@@ -58,7 +58,6 @@ Map::Map() : cameraPosition(25, 14, 3)
 {
 	width = height = 0;
 	nodeCount = vehicleCount = 0;
-	
 }
 
 Map::~Map()
@@ -75,6 +74,15 @@ void Map::setupGroups()
 	{
 		groups[i].pos = startPos + D3DXVECTOR2((groupRay + 10) * i, 0);
 	}
+
+	groupCount = 4;
+	int groupIndex = 0;
+	for (int i=0; i < 16; ++i) {
+		if (i > 3 && i % 4 == 0) groupIndex++;
+		vehicles[i].group = &groups[groupIndex];
+		vehicles[i].tile = Texture( i % 2 == 0 ? "smoke.jpg" : "smoketex.jpg" );
+	}
+	vehicleCount = 16;
 }
 
 static void trimr(char * buffer) {

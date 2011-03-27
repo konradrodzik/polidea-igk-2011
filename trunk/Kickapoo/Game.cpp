@@ -17,14 +17,15 @@ const float MaxRelativeTime = 10.0f;
 
 
 Game::Game(void)
-	:  state_(EGameState::Running)
+	:  state_(EGameState::Intro)
 ,  kryzys_("kryzys_logo.jpg")
 ,  crysis_("crysis.jpg")
 ,  selection_("gfx/wave.png")
 ,  gameScreen_("gfx/splash_main.png")
 ,  zero_("gfx/splash_0.png")
 ,  one_("gfx/splash_1.png")
-, map(NULL),
+, map(NULL)
+,routePlaner(NULL),
 street("gfx/road.png"),
 street_corner("gfx/road2.png"),
 street_cross("gfx/road3.png"),
@@ -33,7 +34,7 @@ tank1("models/droidroom.x")
 {
 	g_Game = this;
 
-	changeState(EGameState::Running);
+	changeState(EGameState::RoutePlaning);
 	loadLevel();
 
 	explosionSound = g_Audio()->loadSound("sfx/explosion.wav");
@@ -70,6 +71,7 @@ tank1("models/droidroom.x")
 
 	RECT screenMiddle ={g_Window()->getWidth() * 0.25f, g_Window()->getHeight()*0.5f, g_Window()->getWidth() * 0.25f + g_Window()->getWidth(),  g_Window()->getHeight() * 0.25f + g_Window()->getHeight()};
 	_screenMiddleRect = screenMiddle;
+
 }
 
 void Game::loadLevel()
@@ -77,9 +79,11 @@ void Game::loadLevel()
 	delete map;
 	map = NULL;
 	map = Map::load("map0.bmp");
-
 	// TODO:
 	map->setupGroups();
+
+	delete routePlaner;
+	routePlaner = new RoutePlaner();
 }
 
 Game::~Game(void)
@@ -105,16 +109,18 @@ void Game::update()
 {
 	float dt = g_Timer()->getFrameTime();
 
-	if(state_ != EGameState::Intro) {
-		if(map)
-			map->update();
-	}
-
 	if(state_ == EGameState::Intro)
 	{
-	} 
+	}
+	else if(state_ == EGameState::RoutePlaning)
+	{
+		if (routePlaner)
+			routePlaner->update();
+	}
 	else if(state_ == EGameState::Running)
 	{
+		if(map)
+			map->update();
 		for(int i = 0; i < maxLevels_; ++i) {
 			if(GetKeyState('1' + i) & 0x80) {
 				loadLevel();
@@ -183,7 +189,11 @@ void Game::draw()
 				}
 
 	} 
-	else
+	else if(state_ == EGameState::RoutePlaning)
+	{
+		if(routePlaner)
+			routePlaner->draw();
+	} else 
 	{
 		if(map)
 			map->draw();
