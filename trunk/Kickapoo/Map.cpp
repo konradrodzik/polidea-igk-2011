@@ -96,11 +96,12 @@ void Map::setupGroups()
 	vehicleCount = 16;
 
 	vehicles[rand() % vehicleCount].type = VEHICLE_Vip;
-
+	/*
 	for(int i = 0; i < nodeCount; ++i)
 	{
 		groups[0].nodes.push_back(&nodes[i]);
 	}
+	*/
 	D3DXVECTOR2 startPos = D3DXVECTOR2((g_Window()->getWidth() - GROUP_BUTTON_SIZE * groupCount) / 2, 
 		g_Window()->getHeight() - GROUP_BUTTON_SIZE);
 	float groupRay = GROUP_BUTTON_SIZE;

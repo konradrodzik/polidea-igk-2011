@@ -32,6 +32,8 @@ public:
 	Game *game_;
 	Texture startGame;
 	Group *selectedGroup;
+	int selectedGroupIndex;
+	Texture selection;
 	int mapX;
 	int mapY;
 	int mapHeight;
