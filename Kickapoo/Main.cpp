@@ -64,9 +64,9 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 		//texture.beginRenderToTexture();
 
 		g_Renderer()->setIdentity();
-		//g_Game->draw();
+		g_Game->draw();
 		//g_Mouse()->drawCursor();
-		g_ParticleSystem()->renderParticles();
+		//g_ParticleSystem()->renderParticles();
 
 		mousePosition->write("fps: %0.1f\nmouse position: (%0.1f, %0.1f)", 
 			g_Timer()->getFPS(), g_Mouse()->getX(), g_Mouse()->getY());

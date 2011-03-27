@@ -85,6 +85,10 @@ Map* Map::load( const std::string& name )
 
 void Map::finalize()
 {	
+	nodeCount = 0;
+	vehicleCount = 0;
+	groupCount = 0;
+
 	for(int i = 1; i < height-1; ++i)
 	{
 		for(int j = 1; j < width-1; ++j)
@@ -97,53 +101,127 @@ void Map::finalize()
 
 			if(cur.type == TILE_Street)
 			{
-				if(left.type == right.type && left.type == TILE_Street)
+				if(left.type == right.type && left.type == TILE_Street && up.type == down.type && down.type == TILE_Street)
 				{
-					if(up.type == down.type && down.type == TILE_Street)
-					{
-						cur.texture = &g_Game->street_cross;
-						continue;
-					}
-
-					cur.texture = &g_Game->street;
-					continue;
+					cur.texture = &g_Game->street_cross;
 				}
-
-				if(up.type == down.type && down.type == TILE_Street)
+				else if(right.type == left.type && up.type == right.type && right.type == TILE_Street)
+				{
+					cur.texture = &g_Game->street_cross3;
+					cur.offset = 2;
+				}
+				else if(right.type == left.type && down.type == right.type && right.type == TILE_Street)
+				{
+					cur.texture = &g_Game->street_cross3;
+					cur.offset = 0;
+				}
+				else if(down.type == up.type && up.type == right.type && down.type == TILE_Street)
+				{
+					cur.texture = &g_Game->street_cross3;
+					cur.offset = 3;
+				}
+				else if(down.type == up.type && up.type == left.type && down.type == TILE_Street)
+				{
+					cur.texture = &g_Game->street_cross3;
+					cur.offset = 1;
+				}
+				else if(left.type == right.type && left.type == TILE_Street)
+				{
+					cur.texture = &g_Game->street;
+				}
+				else if(up.type == down.type && down.type == TILE_Street)
 				{
 					cur.texture = &g_Game->street;
 					cur.offset = 2;
-					continue;
 				}
-
-				if(left.type == up.type && left.type == TILE_Street)
+				else if(left.type == up.type && left.type == TILE_Street)
 				{
 					cur.texture = &g_Game->street_corner;
 					cur.offset = 1;
-					continue;
 				}
-
-				if(left.type == down.type && left.type == TILE_Street)
+				else if(left.type == down.type && left.type == TILE_Street)
 				{
 					cur.texture = &g_Game->street_corner;
 					cur.offset = 0;
-					continue;
 				}
-
-				if(right.type == down.type && right.type == TILE_Street)
+				else if(right.type == down.type && right.type == TILE_Street)
 				{
 					cur.texture = &g_Game->street_corner;
 					cur.offset = 3;
-					continue;
 				}
-
-				if(right.type == up.type && right.type == TILE_Street)
+				else if(right.type == up.type && right.type == TILE_Street)
 				{
 					cur.texture = &g_Game->street_corner;
 					cur.offset = 2;
-					continue;
 				}
+				else if(up.type == cur.type || down.type == cur.type)
+				{
+					cur.texture = &g_Game->street;
+					cur.offset = 2;
+				}
+				else
+				{
+					cur.texture = &g_Game->street;
+				}
+
+
+				// add node
+				cur.node = &nodes[nodeCount++];
+				cur.node->position = D3DXVECTOR2(j,i);
+				cur.node->otherNodes.clear();
 			}
+		}
+	}
+
+	for(int w = 1; w < width-1; ++w)
+	{
+		Node* lastNode = NULL;
+
+		for(int h = 1; h < height-1; ++h)
+		{
+			Tile& cur = tiles[w][h];
+			if(cur.type != TILE_Street)
+			{
+				lastNode = NULL;
+				continue;
+			}
+
+			Node* node = cur.node;
+			if(!node)
+				continue;
+			
+			if(lastNode)
+			{
+				lastNode->otherNodes.push_back(node);
+				node->otherNodes.push_back(lastNode);
+			}
+			lastNode = node;
+		}
+	}
+	
+	for(int h = 1; h < height-1; ++h)
+	{
+		Node* lastNode = NULL;
+		
+		for(int w = 1; w < width-1; ++w)
+		{
+			Tile& cur = tiles[w][h];
+			if(cur.type != TILE_Street)
+			{
+				lastNode = NULL;
+				continue;
+			}
+
+			Node* node = cur.node;
+			if(!node)
+				continue;
+
+			if(lastNode)
+			{
+				lastNode->otherNodes.push_back(node);
+				node->otherNodes.push_back(lastNode);
+			}
+			lastNode = node;
 		}
 	}
 }
@@ -248,6 +326,45 @@ void Map::drawTiles()
 	}
 }
 
+void Map::drawNodes(D3DXMATRIX* trans)
+{
+	LPD3DXLINE line;
+	HRESULT hr = D3DXCreateLine(getDevice(), &line);
+	if(FAILED(hr))
+		return;
+	line->SetWidth(5.0f);
+	line->SetAntialias(TRUE);
+	line->SetGLLines(TRUE);
+
+	line->Begin();
+
+	for(int i = 0; i < nodeCount; ++i)
+	{
+		Node* a = &nodes[i];
+		for(int j = 0; j < a->otherNodes.size(); ++j)
+		{
+			Node *b = a->otherNodes[j];
+			if(b <= a)
+				continue;
+
+			D3DXVECTOR3 v[2];
+
+			v[0].x = 0.5f+a->position.x;
+			v[0].y = 0.5f+a->position.y;
+			v[0].z = 0.02f;
+			v[1].x = 0.5f+b->position.x;
+			v[1].y = 0.5f+b->position.y;
+			v[1].z = 0.02f;
+			
+			line->DrawTransform(v, 2, trans, D3DCOLOR_ARGB(100,100,100,200));
+		}
+	}
+
+	line->End();
+
+	line->Release();
+}
+
 void Map::draw()
 {
 	getDevice()->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128,128,128), 1.0f, 0);
@@ -266,6 +383,9 @@ void Map::draw()
 	at.z = 0;
 	D3DXMatrixLookAtRH(&view, &cameraPosition, &at, &up);
 	getDevice()->SetTransform(D3DTS_VIEW, &view);
+
+	D3DXMATRIX matrix;
+	D3DXMatrixMultiply(&matrix, &view, &proj);
 
 	// setup drawing options
 	getDevice()->SetRenderState(D3DRS_LIGHTING, TRUE);
@@ -307,12 +427,18 @@ void Map::draw()
 	getDevice()->LightEnable(0, TRUE);
 	getDevice()->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(50,50,50));
 
+	// draw map
 	drawTiles();
-
-	// draw other objects
 
 	// setup drawing options
 	getDevice()->SetRenderState(D3DRS_LIGHTING, FALSE);
-	getDevice()->SetRenderState(D3DRS_ZENABLE, FALSE);
 	getDevice()->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+
+	// draw nodes
+	drawNodes(&matrix);
+
+	// disable z
+	getDevice()->SetRenderState(D3DRS_ZENABLE, FALSE);
+
+
 }

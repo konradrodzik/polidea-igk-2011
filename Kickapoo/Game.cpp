@@ -27,7 +27,9 @@ Game::Game(void)
 , map(NULL),
 street("gfx/road.png"),
 street_corner("gfx/road2.png"),
-street_cross("gfx/road3.png")
+street_cross("gfx/road3.png"),
+street_cross3("gfx/road4.png"),
+tank1("models/droidroom.x")
 {
 	g_Game = this;
 
