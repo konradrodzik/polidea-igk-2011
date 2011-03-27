@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "Mesh.h"
 
 class Smoke;
 
@@ -111,8 +112,9 @@ struct Tile
 	Texture* texture;
 	int offset;
 	Node* node;
+	Mesh* mesh;
 
-	Tile() : type(TILE_Ignore), random(0), texture(0), node(NULL)
+	Tile() : type(TILE_Ignore), random(0), texture(0), node(NULL), mesh(NULL)
 	{
 	}
 };
@@ -135,6 +137,7 @@ public:
 	std::vector<Bullet*> bullets;
 
 	D3DXVECTOR3 cameraPosition;
+	Texture map;
 
 public:
 	Map();

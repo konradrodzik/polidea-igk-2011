@@ -54,7 +54,7 @@ void Vehicle::update()
 	}
 }
 
-Map::Map() : cameraPosition(25, 14, 3)
+Map::Map() : cameraPosition(20,3,15)
 {
 	width = height = 0;
 	nodeCount = vehicleCount = 0;
@@ -153,6 +153,8 @@ Map* Map::load( const std::string& name )
 
 	fclose(file);
 
+	map->load(name);
+
 	map->finalize();
 	return map;
 }
@@ -244,6 +246,14 @@ void Map::finalize()
 				cur.node->position = D3DXVECTOR2(j,i);
 				cur.node->otherNodes.clear();
 			}
+			else if(cur.type == TILE_Block)
+			{
+				//cur.mesh = &g_Game->ap_b;
+			}
+			else
+			{
+				cur.texture = &g_Game->grass;
+			}
 		}
 	}
 
@@ -308,12 +318,12 @@ void Map::update()
 	g_Input()->getScroll(scroll);
 	float sensitivity = 8;
 	cameraPosition.x -= dx * sensitivity * g_Timer()->getFrameTime(); 
-	cameraPosition.y += dy * sensitivity * g_Timer()->getFrameTime();
+	cameraPosition.z += dy * sensitivity * g_Timer()->getFrameTime();
 
 	if(scroll > 0)
-		cameraPosition.z = max(cameraPosition.z - 3, 2);
+		cameraPosition.y = max(cameraPosition.y - 3, 2);
 	else if(scroll < 0)
-		cameraPosition.z = min(cameraPosition.z + 3, 100);
+		cameraPosition.y = min(cameraPosition.y + 3, 100);
 
 	// start groups
 	if((GetKeyState('Q') & 0x80) && !groups[0].started)
@@ -354,8 +364,8 @@ DWORD Vertex::FVF = D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_TEX2;
 
 static Vertex RectVerts[4] = {
 	{0,0,0,  0,0,1,  0,0},
-	{0,1,0,  0,0,1,  0,1},
-	{1,1,0,  0,0,1,  1,1},
+	{0,0,1,  0,0,1,  0,1},
+	{1,0,1,  0,0,1,  1,1},
 	{1,0,0,  0,0,1,  1,0}
 };
 
@@ -387,6 +397,7 @@ void Map::drawTiles()
 			case TILE_Street:
 			case TILE_Water:
 			case TILE_Grass:
+			case TILE_Ignore:
 				{
 					if(!tile.texture)
 						continue;
@@ -395,7 +406,7 @@ void Map::drawTiles()
 				{
 					verts[k] = RectVerts[k];
 					verts[k].xyz[0] += j;
-					verts[k].xyz[1] += i;
+					verts[k].xyz[2] += i;
 					verts[k].tex[0] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[0];
 					verts[k].tex[1] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[1];
 				}
@@ -407,16 +418,9 @@ void Map::drawTiles()
 
 			case TILE_Block:
 				{
-				Vertex verts[COUNT_OF(BoxVerts)];
-				for(int k = 0; k < COUNT_OF(BoxVerts); ++k)
-				{
-					verts[k] = BoxVerts[k]; 
-					verts[k].xyz[0] += j;
-					verts[k].xyz[1] += i;
-					verts[k].xyz[2] *= tile.random;
-				}
-				getDevice()->SetFVF(Vertex::FVF);
-				getDevice()->DrawPrimitiveUP(D3DPT_TRIANGLELIST, COUNT_OF(verts) / 3, verts, sizeof(verts[0]));
+					if(!tile.mesh)
+						continue;
+				tile.mesh->draw(D3DXVECTOR3(j + 0.5f, 0, i + 0.5f), D3DXVECTOR3());
 				}
 				break;
 			}
@@ -448,11 +452,11 @@ void Map::drawNodes(D3DXMATRIX* trans)
 			D3DXVECTOR3 v[2];
 
 			v[0].x = 0.5f+a->position.x;
-			v[0].y = 0.5f+a->position.y;
-			v[0].z = 0.02f;
+			v[0].z = 0.5f+a->position.y;
+			v[0].y = 0.02f;
 			v[1].x = 0.5f+b->position.x;
-			v[1].y = 0.5f+b->position.y;
-			v[1].z = 0.02f;
+			v[1].z = 0.5f+b->position.y;
+			v[1].y = 0.02f;
 			
 			line->DrawTransform(v, 2, trans, D3DCOLOR_ARGB(100,100,100,200));
 		}
@@ -474,11 +478,11 @@ void Map::draw()
 
 	// setup view matrix
 	D3DXMATRIX view;
-	D3DXVECTOR3 at, up(0,1,0);
+	D3DXVECTOR3 at, up(0,0,1);
 	at = cameraPosition;
 	at.x += 0;
 	//at.y += 1;
-	at.z = 0;
+	at.y= 0;
 	D3DXMatrixLookAtRH(&view, &cameraPosition, &at, &up);
 	getDevice()->SetTransform(D3DTS_VIEW, &view);
 
@@ -519,7 +523,7 @@ void Map::draw()
 	light.Attenuation1 = 0.4f;
 	light.Range      = 100000.0f;
 	D3DXVECTOR3 vecDir;
-	vecDir = D3DXVECTOR3(0.0f,0.3,-1.0);
+	vecDir = D3DXVECTOR3(0.0f,-1.0,0.3);
 	D3DXVec3Normalize((D3DXVECTOR3*)&light.Direction, &vecDir);
 	getDevice()->SetLight(0, &light);
 	getDevice()->LightEnable(0, TRUE);
@@ -527,6 +531,8 @@ void Map::draw()
 
 	// draw map
 	drawTiles();
+
+	g_Game->tank1.draw(D3DXVECTOR3(10, 1, 15), D3DXVECTOR3());
 
 	// setup drawing options
 	getDevice()->SetRenderState(D3DRS_LIGHTING, FALSE);

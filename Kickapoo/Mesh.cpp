@@ -1,6 +1,8 @@
 #include "Common.h"
 #include "Mesh.h"
 
+const char* basename(const char* p);
+
 void Mesh::load(const string& meshName_)
 {
 	MeshName = meshName_;
@@ -13,12 +15,31 @@ void Mesh::load(const string& meshName_)
 								 getDevice(), NULL, 
 								 &materialBuffer,NULL, &numMaterials, 
 								 &pMesh );
-	if(FAILED(hr))
+	
+ 	if(FAILED(hr))
 	{
+		fail:
 		pMesh = NULL;
 		textures.clear();
 		materials.clear();
 		return;
+	}
+
+	byte* vertices;
+	hr = pMesh->LockVertexBuffer(0, (LPVOID*)&vertices);
+	if(SUCCEEDED(hr))
+	{
+		DWORD size = pMesh->GetNumBytesPerVertex();
+		DWORD count = pMesh->GetNumVertices();
+		for(int i = 0; i < count; ++i)
+		{
+			// xz-y
+			// xy-z
+			D3DXVECTOR3* vert = (D3DXVECTOR3*)vertices;
+			vertices += size;
+			//std::swap(vert->z, vert->y);
+		}
+		pMesh->UnlockVertexBuffer();
 	}
 
 	D3DXMATERIAL* d3dxMaterials = (D3DXMATERIAL*)materialBuffer->GetBufferPointer();
@@ -31,6 +52,8 @@ void Mesh::load(const string& meshName_)
 	{
 		if(materials[i].pTextureFilename)
 			textures[i].load(materials[i].pTextureFilename);
+		else
+			textures[i].load(string(basename(MeshName.c_str())) + ".bmp");
 	}
 
 	materialBuffer->Release();

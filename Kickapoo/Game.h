@@ -66,5 +66,7 @@ public:
 	RoutePlaner *routePlaner;
 public:
 	Texture street, street_corner, street_cross3, street_cross;
+	Texture grass;
 	Mesh tank1;
+	Mesh ap_b;
 };
