@@ -118,6 +118,7 @@ void RoutePlaner::update()
 #define FLT_EQ(x, y) (x > y - EPS && x < y + EPS)
 
 						for (int i = 0; i < node->otherNodes.size(); ++i) {
+							printf("otherNodes[%d].pos = %f %f\n", i, node->otherNodes[i]->position.x, node->otherNodes[i]->position.y);
 							if (FLT_EQ(node->otherNodes[i]->position.x, tilesX) && FLT_EQ(node->otherNodes[i]->position.y, tilesY)) {
 								selectedGroup->nodes.push_back(node->otherNodes[i]);
 								printf("pushing node\n");
@@ -172,10 +173,11 @@ void RoutePlaner::draw()
 	if (selectedGroup && selectedGroup->nodes.size() > 0) {
 		D3DXVECTOR2 lastPos = selectedGroup->nodes[0]->position;
 		D3DXVECTOR2 nextPos;
-		D3DXVec2Add(&nextPos, &lastPos, &D3DXVECTOR2(5, 5));
+		D3DXVec2Add(&nextPos, &lastPos, &D3DXVECTOR2(1, 1));
 		for (int i=1; i < selectedGroup->nodes.size(); ++i) {
 			nextPos = selectedGroup->nodes[i]->position;
 			g_Renderer()->drawLine(mapX + lastPos.x * mapScale, mapY + lastPos.y * mapScale, mapX + nextPos.x * mapScale, mapY + nextPos.y * mapScale, 5);
 		}
+		g_Renderer()->drawLine(mapX + lastPos.x * mapScale, mapY + lastPos.y * mapScale, mapX + nextPos.x * mapScale, mapY + nextPos.y * mapScale, 5);
 	}
 }
