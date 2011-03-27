@@ -80,7 +80,7 @@ void Map::setupGroups()
 	for (int i=0; i < 16; ++i) {
 		if (i > 3 && i % 4 == 0) groupIndex++;
 		vehicles[i].group = &groups[groupIndex];
-		vehicles[i].tile = Texture( i % 2 == 0 ? "smoke.jpg" : "smoketex.jpg" );
+		vehicles[i].tile = Texture( i % 2 == 0 ? "tank_tile.png" : "smoketex.jpg" );
 	}
 	vehicleCount = 16;
 }
