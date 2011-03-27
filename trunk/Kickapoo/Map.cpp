@@ -2,13 +2,12 @@
 
 #define GROUP_BUTTON_SIZE 50
 
-Bullet::Bullet(BulletType type) : type(type), position(0,0), velocity(0,0)
+Bullet::Bullet(BulletType type) : type(type), position(0,0), velocity(0,0), owner(NULL), smoke(NULL)
 {
+	splashRange = 1;
+	texture = "gfx/missile.png";
 	if(type == BulletType::BULLET_Rocket)
 	{
-		splashRange = 1;
-		texture = "gfx/missile.png";
-
 		smoke = new Smoke();
 		g_ParticleSystem()->spawn(smoke);
 	}
@@ -20,7 +19,7 @@ void Bullet::update()
 	position = position + velocity * g_Timer()->getFrameTime();
 	if(type == BulletType::BULLET_Rocket)
 	{
-		smoke->pos = D3DXVECTOR3(position.x, position.y, 0);
+		smoke->pos = D3DXVECTOR3(position.x - 0.2, 0, position.y - 0.2);
 	}
 }
 
@@ -32,13 +31,18 @@ void Bullet::draw()
 
 Bullet* Vehicle::fire(D3DXVECTOR2 dir)
 {
-	fireTime = 0;
-	Bullet* bullet = new Bullet(bulletType);
-	bullet->position = position;
-	bullet->position.x -= 0.5f;
-	bullet->position.y -= 0.5f;
-	bullet->velocity = dir;
-	return bullet;
+	if(fireTime > 1.0f)
+	{
+		fireTime = 0;
+		Bullet* bullet = new Bullet(bulletType);
+		bullet->position = center();
+		bullet->velocity = dir;
+		bullet->owner = this;
+		bullet->group = group;
+	
+		return bullet;
+	}
+	return NULL;
 }
 
 void Vehicle::update()
@@ -46,6 +50,7 @@ void Vehicle::update()
 	if(!group->started)
 		return;
 
+	fireTime += g_Timer()->getFrameTime();
 	time += g_Timer()->getFrameTime();
 
 	if(time > startTime)
@@ -56,6 +61,7 @@ void Vehicle::update()
 			{
 				nextPos = group->nodes[currentNode + 1]->position;
 				dir = nextPos - group->nodes[currentNode]->position;
+				D3DXVec2Normalize(&dir, &dir);
 			}
 			position = position + dir * velocity * g_Timer()->getFrameTime();
 
@@ -462,7 +468,7 @@ void Map::startGroup(int i)
 		if(vehicle->type != VEHICLE_NONE)
 		{
 			// start vehicle every 2 seconds
-			vehicle->startTime = i * 2;
+			vehicle->startTime = j * 2;
 		}
 	}
 }
@@ -478,9 +484,6 @@ void Map::update()
 	cameraPosition.z += dy * sensitivity * g_Timer()->getFrameTime();
 	cameraPosition.x = max(0, min(width, cameraPosition.x));
 	cameraPosition.z = max(0, min(height, cameraPosition.z));
-
-	//cameraPosition.x = vehicles[0].position.x;
-	//cameraPosition.z = vehicles[0].position.y;
 
 	if(g_Input()->keyPressed(VK_SPACE))
 		camera_mode = !camera_mode;
@@ -513,32 +516,40 @@ void Map::update()
 		bullets[i]->update();
 		// TODO: collisions
 		int x = bullets[i]->position.x, y = bullets[i]->position.y;
-		if(x < 0 || y < 0 || tiles[x][y].type == TileType::TILE_Block)
+		if(x < 0 || y < 0 || x > MaxMapSize || y > MaxMapSize || tiles[x][y].type == TileType::TILE_Block)
 		{
+			g_ParticleSystem()->spawn(new Nova(D3DXVECTOR3(bullets[i]->center().x, 
+							0, bullets[i]->center().y), 0.3f, 2));
+			if(bullets[i]->smoke != NULL) {
+				bullets[i]->smoke->enabled = false;
+			}
 			bullets.erase(bullets.begin() + i);
 			goto END;
 		}
 
 		for(int j = 0; j < vehicleCount; ++j)
 		{
-			if(vehicles[j].hp > 0)
+			if(vehicles[j].hp > 0 && bullets[i]->owner != &vehicles[j] && bullets[i]->group != vehicles[j].group)
 			{
-				float dist = D3DXVec2Length(&(bullets[i]->position - vehicles[j].position));
-				if(dist < 1)
+				float dist = D3DXVec2Length(&(bullets[i]->center() - vehicles[j].center()));
+				if(dist < 0.2f)
 				{
 					vehicles[j].hp -= bullets[i]->demage();
 					// TODO: particle
-					/*if(bullets[i]->type == BulletType::BULLET_Rocket)
+					//if(bullets[i]->type == BulletType::BULLET_Rocket)
 					{
-						g_ParticleSystem()->spawn(new Nova(D3DXVECTOR3(bullets[i]->position.x, 
-							0, bullets[i]->position.y), 1, 100));
+						g_ParticleSystem()->spawn(new Nova(D3DXVECTOR3(bullets[i]->center().x, 
+							0, bullets[i]->center().y), 0.3f, 2));
 					}
-					else if(bullets[i]->type == BulletType::BULLET_Shot) 
+					/*else if(bullets[i]->type == BulletType::BULLET_Shot) 
 					{
-						g_ParticleSystem()->spawn(new Fire(D3DXVECTOR3(bullets[i]->position.x, 
-							0, bullets[i]->position.y)));
+						g_ParticleSystem()->spawn(new Fire(D3DXVECTOR3(bullets[i]->center().x, 
+							0, bullets[i]->center().y)));
 					}*/
-
+					if(bullets[i]->smoke != NULL)
+					{
+						bullets[i]->smoke->enabled = false;
+					}
 					bullets.erase(bullets.begin() + i);
 					goto END;
 				}
@@ -547,24 +558,27 @@ void Map::update()
 
 		for(int j = 0; j < towers.size(); ++j)
 		{
-			if(towers[j]->hp > 0)
+			if(towers[j]->hp > 0 && bullets[i]->owner != towers[j])
 			{
-				float dist = D3DXVec2Length(&(bullets[i]->position - towers[j]->pos));
-				if(dist < 1)
+				float dist = D3DXVec2Length(&(bullets[i]->center() - towers[j]->center()));
+				if(dist < 0.5f)
 				{
 					towers[j]->hp -= bullets[i]->demage();
 					// TODO: particle
-					/*if(bullets[i]->type == BulletType::BULLET_Rocket)
+					//if(bullets[i]->type == BulletType::BULLET_Rocket)
 					{
-						g_ParticleSystem()->spawn(new Nova(D3DXVECTOR3(bullets[i]->position.x, 
-							0, bullets[i]->position.y), 1, 100));
+						g_ParticleSystem()->spawn(new Nova(D3DXVECTOR3(bullets[i]->center().x, 
+							0, bullets[i]->center().y), 0.3f, 2));
 					}
-					else if(bullets[i]->type == BulletType::BULLET_Shot) 
+					/*else if(bullets[i]->type == BulletType::BULLET_Shot) 
 					{
-						g_ParticleSystem()->spawn(new Fire(D3DXVECTOR3(bullets[i]->position.x, 
-							0, bullets[i]->position.y)));
+						g_ParticleSystem()->spawn(new Fire(D3DXVECTOR3(bullets[i]->center().x, 
+							0, bullets[i]->center().y)));
 					}*/
-
+					if(bullets[i]->smoke != NULL)
+					{
+						bullets[i]->smoke->enabled = false;
+					}
 					bullets.erase(bullets.begin() + i);
 					goto END;
 				}
@@ -585,8 +599,8 @@ END:
 			// wygrana
 			if(vehicles[j].type == VehicleType::VEHICLE_Vip)
 			{
-				int x = vehicles[j].position.x, y = vehicles[j].position.y;
-				if(tiles[x][y].type == TileType::TILE_BUNKIER)
+				int x = vehicles[j].center().x, y = vehicles[j].center().y;
+				if(x >= 0 && y >= 0 && x < MaxMapSize && y < MaxMapSize && tiles[x][y].type == TileType::TILE_BUNKIER)
 				{
 					g_Game->changeState(EGameState::GameFinished);
 				}
@@ -601,15 +615,20 @@ END:
 
 	for(int i = 0; i < towers.size(); ++i)
 	{
+		if(towers[i]->hp <= 0)
+		{
+			continue;
+		}
+
 		towers[i]->update();
 		for(int j = 0; j < vehicleCount; ++j)
 		{
 			if(vehicles[j].hp > 0 && vehicles[j].time > vehicles[j].startTime)
 			{
-				float dist = D3DXVec2Length(&(towers[i]->pos - vehicles[j].position));
+				float dist = D3DXVec2Length(&(towers[i]->center() - vehicles[j].center()));
 				if(dist < towers[i]->range)
 				{
-					Bullet* bullet = towers[i]->fire(vehicles[j].position - towers[i]->pos);
+					Bullet* bullet = towers[i]->fire(vehicles[j].center() - towers[i]->center());
 					if(bullet != NULL)
 					{
 						bullets.push_back(bullet);
@@ -618,7 +637,7 @@ END:
 
 				if(dist < vehicles[j].range)
 				{
-					Bullet* bullet = vehicles[j].fire(towers[i]->pos - vehicles[j].position);
+					Bullet* bullet = vehicles[j].fire(towers[i]->center() - vehicles[j].center());
 					if(bullet != NULL)
 					{
 						bullets.push_back(bullet);
@@ -820,8 +839,14 @@ void Map::draw()
 		{
 			if(vehicles[i].type == VEHICLE_Vip)
 			{
+				D3DXVECTOR2 dir;
+				D3DXVec2Subtract(&dir, &nodes[vehicles[i].currentNode].position, &vehicles[i].position);
+				D3DXVec2Normalize(&dir, &dir);
 				eye = D3DXVECTOR3(vehicles[i].position.x, 1, vehicles[i].position.y);
-				at = D3DXVECTOR3(vehicles[i].dir.x, 0, vehicles[i].dir.y);
+				D3DXVECTOR3 dir2(dir.x, 0, dir.y);
+				at.x = eye.x + dir2.x;
+				at.y = eye.y + dir2.y;
+				at.z = eye.z + dir2.z;
 			}
 		}
 	}
@@ -888,7 +913,7 @@ void Map::draw()
 	for(int i = 0; i < towers.size(); ++i)
 	{
  		Tower* t = towers[i];
-		if(t->mesh)
+		if(t->mesh && t->hp > 0)
 		{
 			D3DXVECTOR2 vv(t->pos.x, t->pos.y);
 			t->mesh->draw(D3DXVECTOR3(t->pos.x + 0.5f, 0, t->pos.y + 0.5f));
@@ -916,12 +941,16 @@ void Map::draw()
 		}
 		if(!mesh)
 			continue;
+
+		D3DXVECTOR2 dir;
+		D3DXVec2Subtract(&dir, &nodes[v.currentNode].position, &v.position);
+		D3DXVec2Normalize(&dir, &dir);
 		D3DXVECTOR2 vv(v.position.x + 0.5f, v.position.y + 0.5f);
-		mesh->draw(D3DXVECTOR3(v.position.x + 0.5f, 0.02f, v.position.y + 0.5f), D3DXVECTOR3(v.dir.x, 0, v.dir.y));
+		mesh->draw(D3DXVECTOR3(v.position.x + 0.5f, 0.02f, v.position.y + 0.5f), D3DXVECTOR3(dir.x, 0, dir.y));
 		if(v.type == VEHICLE_Vip)
 			drawRing(g_Game->ringc, v.position, 3 + i);
-		else
-			drawRing(g_Game->ringb, v.position, 5 + i);
+		//else
+		//	drawRing(g_Game->ringb, v.position, 5 + i);
 
 		if(lightIndex < 8 && false)
 		{

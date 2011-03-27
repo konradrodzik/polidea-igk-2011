@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nShowCmd)
 {
 	g_Window()->initApplication( "Road Trip!", 800, 600, hInstance, false );
-	g_Direct3D()->initDirect3D(32, false);
+	g_Direct3D()->initDirect3D(32, true);
 	g_Renderer()->create();
 	g_Input()->init(hInstance, false);
 	g_Audio()->create();
@@ -68,8 +68,8 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 		//g_Mouse()->drawCursor();
 		//g_ParticleSystem()->renderParticles();
 
-		mousePosition->write("fps: %0.1f\nmouse position: (%0.1f, %0.1f)", 
-			g_Timer()->getFPS(), g_Mouse()->getX(), g_Mouse()->getY());
+		//mousePosition->write("fps: %0.1f\nmouse position: (%0.1f, %0.1f)", 
+		//	g_Timer()->getFPS(), g_Mouse()->getX(), g_Mouse()->getY());
 	
 		//texture.endRenderToTexture();
 		//getDevice()->SetTexture(0, *texture.getTexture());

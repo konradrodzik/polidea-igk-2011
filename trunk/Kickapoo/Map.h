@@ -33,11 +33,18 @@ struct Bullet
 	Smoke* smoke;
 	Texture texture;
 	float splashRange;
+	void* owner;
+	void* group;
 
 	Bullet(BulletType type);
 
 	void update();
 	void draw();
+
+	D3DXVECTOR2 center()
+	{
+		return D3DXVECTOR2(position.x - 0.2f, position.y - 0.2f);
+	}
 
 	float demage()
 	{
@@ -81,11 +88,16 @@ struct Vehicle
 	D3DXVECTOR2 nextPos;
 	bool driving;
 
-	Vehicle() : type(VEHICLE_Fast), bulletType(BULLET_Rocket), model(NULL), group(NULL), currentNode(0), velocity(1), position(0,0),
+	Vehicle() : type(VEHICLE_Fast), bulletType(BULLET_Rocket), model(NULL), group(NULL), currentNode(0), velocity(0.5f), position(0,0),
 		dir(0,0), range(5), fireTime(0), time(0), startTime(0)
 	{
 		hp = 300;
 		driving = true;
+	}
+
+	D3DXVECTOR2 center()
+	{
+		return D3DXVECTOR2(position.x + 0.5f, position.y + 0.5f);
 	}
 
 	Bullet* fire(D3DXVECTOR2 dir);
@@ -130,22 +142,29 @@ struct Tower
 		fireTime += g_Timer()->getFrameTime();
 	}
 
+	D3DXVECTOR2 center()
+	{
+		return D3DXVECTOR2(pos.x + 0.25f, pos.y - 0.25f);
+	}
+
 	Bullet* fire(D3DXVECTOR2 dir)
 	{ 
 		if(type == TowerType::TOWER_Fast && fireTime > 0.5f)
 		{
 			fireTime = 0;
 			Bullet* bullet = new Bullet(BulletType::BULLET_Shot);
-			bullet->position = pos;
+			bullet->position = center();
 			bullet->velocity = dir;
+			bullet->owner = this;
 			return bullet;
 		}
 		else if(type == TowerType::TOWER_Slow && fireTime > 2.0f)
 		{
 			fireTime = 0;
 			Bullet* bullet = new Bullet(BulletType::BULLET_Rocket);
-			bullet->position = pos;
+			bullet->position = center();
 			bullet->velocity = dir;
+			bullet->owner = this;
 			return bullet;
 		}
 		return NULL;
