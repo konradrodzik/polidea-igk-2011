@@ -129,7 +129,6 @@ void Direct3D::setDefaultSettings()
 	d3dDevice->SetRenderState( D3DRS_POINTSIZE_MIN, FloatToDWORD(0.01f) );
 	d3dDevice->SetRenderState( D3DRS_POINTSIZE_MAX, FloatToDWORD(128.0f) );
 
-	D3DXMATRIX matrix;
 	RECT rect;
 	GetClientRect(g_Window()->getHWND(), &rect);
 	int width = rect.right - rect.left;
@@ -138,6 +137,11 @@ void Direct3D::setDefaultSettings()
 	d3dDevice->SetTransform(D3DTS_PROJECTION, &matrix);
 
 	D3DXMatrixTranslation(&matrix, -width / 2.0f, -height / 2.0f, 0);
+	d3dDevice->SetTransform(D3DTS_VIEW, &matrix);
+}
+
+void Direct3D::setViewMatrix()
+{
 	d3dDevice->SetTransform(D3DTS_VIEW, &matrix);
 }
 

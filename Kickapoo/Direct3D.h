@@ -13,6 +13,8 @@ private:
 	int refreshRate;	
 	void findBestRefreshRate();
 
+	D3DXMATRIX matrix;
+
 public:
 	Direct3D();
 	~Direct3D();
@@ -22,7 +24,9 @@ public:
 	void releaseDirect3D();
 	void restoreDevice();
 
-	void setDefaultSettings();		
+	void setDefaultSettings();	
+
+	void setViewMatrix();
 
 	void setDisplayMode(int width, int height) 
 	{
