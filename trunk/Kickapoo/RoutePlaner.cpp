@@ -110,6 +110,11 @@ void RoutePlaner::update()
 					int tilesX = floor((Mouse::getSingletonPtr()->getX() - mapX) / (float)mapScale);
 					int tilesY = floor((Mouse::getSingletonPtr()->getY() - mapY) / (float)mapScale);
 
+					if(!selectedGroup->nodes.size() && game_->map->startNode)
+					{
+						selectedGroup->nodes.push_back(game_->map->startNode);
+					}
+
 					printf("tiles %d %d\n", tilesX, tilesY);
 					if (selectedGroup->nodes.size() > 0) {
 						Node *node = selectedGroup->nodes.back();
@@ -176,8 +181,8 @@ void RoutePlaner::draw()
 		D3DXVec2Add(&nextPos, &lastPos, &D3DXVECTOR2(1, 1));
 		for (int i=1; i < selectedGroup->nodes.size(); ++i) {
 			nextPos = selectedGroup->nodes[i]->position;
-			g_Renderer()->drawLineRHW(mapX + lastPos.x * mapScale, mapY + lastPos.y * mapScale, mapX + nextPos.x * mapScale, mapY + nextPos.y * mapScale, 1);
+			g_Renderer()->drawLineRHW(mapX + (0.5f + lastPos.x) * mapScale, mapY + (0.5f + lastPos.y) * mapScale, mapX + (0.5f + nextPos.x) * mapScale, mapY + (0.5f + nextPos.y) * mapScale, mapScale * 0.3f, D3DCOLOR_XRGB(200,200,200));
+			lastPos = nextPos;
 		}
-		g_Renderer()->drawLineRHW(mapX + lastPos.x * mapScale, mapY + lastPos.y * mapScale, mapX + nextPos.x * mapScale, mapY + nextPos.y * mapScale, 1);
 	}
 }
