@@ -71,11 +71,12 @@ void Vehicle::update()
 	}
 }
 
-Map::Map() : cameraPosition(20,3,15)
+Map::Map() : cameraPosition(20,6,15)
 {
 	width = height = 0;
 	nodeCount = vehicleCount = 0;
 	startNode = NULL;
+	camera_mode = false;
 }
 
 Map::~Map()
@@ -103,6 +104,7 @@ void Map::setupGroups()
 			vehicles[i].position = startNode->position;
 		else
 			vehicles[i].position = nodes[0].position;
+		vehicles[i].dir = D3DXVECTOR2(0,1);
 	}
 #else
 	int groupIndex = 0;
@@ -210,8 +212,8 @@ Map* Map::load( const std::string& name )
 				}
 				else if(bytes[0] <= 80 && bytes[1] > 80 && bytes[2] <= 80) {
 						map->tiles[j][h].texture = &g_Game->grass;
-					if(i & 2 || j & 2)
-						continue;
+					//if(i & 2 || j & 2)
+					//	continue;
 
 					Tower* tower = new Tower;
 					map->towers.push_back(tower);
@@ -483,10 +485,10 @@ void Map::update()
 	if(g_Input()->keyPressed(VK_SPACE))
 		camera_mode = !camera_mode;
 
-	if(scroll > 0)
-		cameraPosition.y = max(cameraPosition.y - 3, 3);
-	else if(scroll < 0)
-		cameraPosition.y = min(cameraPosition.y + 3, 100);
+	//if(scroll > 0)
+	//	cameraPosition.y = max(cameraPosition.y - 3, 3);
+	//else if(scroll < 0)
+	//	cameraPosition.y = min(cameraPosition.y + 3, 100);
 
 	// start groups
 	if((GetKeyState('Q') & 0x80) && !groups[0].started)
@@ -661,6 +663,26 @@ static Vertex BoxVerts[] = {
     {1, 0, 0,  0, -1, 0}, {1, 0, 1,  0, -1, 0}, {0, 0, 0,  0, -1, 0},
 };
 
+void drawRing(Texture& texture, D3DXVECTOR2 position, float shift)
+{	
+	float angle = GetTickCount() / 80.0f + shift;
+	float x = 0.8f + 0.1f*sinf(angle);
+	Vertex verts[COUNT_OF(RectVerts)];
+	for(int k = 0; k < COUNT_OF(RectVerts); ++k)
+	{
+		verts[k] = RectVerts[k];
+		verts[k].xyz[0] = (verts[k].xyz[0] * 2.0f - 1.0f) * x * 0.5f + 0.5f;
+		verts[k].xyz[2] = (verts[k].xyz[2] * 2.0f - 1.0f) * x * 0.5f + 0.5f;
+		verts[k].xyz[1] = 0.01f;
+		verts[k].xyz[0] += position.x;
+		verts[k].xyz[2] += position.y;
+	}
+				
+	texture.set(0);
+	getDevice()->SetFVF(Vertex::FVF);
+	getDevice()->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(verts[0]));
+}
+
 void Map::drawTiles()
 {
 	for(int i = 0; i < height; ++i)
@@ -669,39 +691,27 @@ void Map::drawTiles()
 		{
 			Tile& tile = tiles[j][i];
 
-			switch(tile.type)
+			if(tile.mesh)
 			{
-			case TILE_BUNKIER:
-			case TILE_Block:
-				if(tile.mesh)
-				{
-					tile.mesh->draw(D3DXVECTOR3(j + 0.5f, 0, i + 0.5f));
-					tile.texture = &g_Game->grass;
-				}
-
-			case TILE_Street:
-			case TILE_Water:
-			case TILE_Grass:
-			case TILE_Ignore:
-				{
-					if(!tile.texture)
-						continue;
-					Vertex verts[COUNT_OF(RectVerts)];
-					for(int k = 0; k < COUNT_OF(RectVerts); ++k)
-					{
-						verts[k] = RectVerts[k];
-						verts[k].xyz[0] += j;
-						verts[k].xyz[2] += i;
-						verts[k].tex[0] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[0];
-						verts[k].tex[1] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[1];
-					}
-				
-				tile.texture->set(0);
-				getDevice()->SetFVF(Vertex::FVF);
-				getDevice()->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(verts[0]));
-				break;
-				}
+				tile.mesh->draw(D3DXVECTOR3(j + 0.5f, 0, i + 0.5f));
+				tile.texture = &g_Game->grass;
 			}
+			 
+			if(!tile.texture)
+				continue;
+			Vertex verts[COUNT_OF(RectVerts)];
+			for(int k = 0; k < COUNT_OF(RectVerts); ++k)
+			{
+				verts[k] = RectVerts[k];
+				verts[k].xyz[0] += j;
+				verts[k].xyz[2] += i;
+				verts[k].tex[0] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[0];
+				verts[k].tex[1] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[1];
+			}
+				
+			tile.texture->set(0);
+			getDevice()->SetFVF(Vertex::FVF);
+			getDevice()->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(verts[0]));
 		}
 	}
 }
@@ -801,7 +811,7 @@ void Map::draw()
 	at = cameraPosition;
 
 	at.x += 0;
-	at.z -= 1;
+	at.z -= 3;
 	at.y = 0;
 
 	if(camera_mode)
@@ -842,44 +852,47 @@ void Map::draw()
 	// setup lighting
 	D3DLIGHT9 light;
 	ZeroMemory(&light, sizeof(D3DLIGHT9) );
-	light.Type       = D3DLIGHT_DIRECTIONAL;
-	light.Position = cameraPosition;
-	light.Ambient.r  = 0.4f;
-	light.Ambient.g  = 0.4f;
-	light.Ambient.b  = 0.4f;
-	light.Ambient.a  = 0.4f;
-	light.Diffuse.r  = 0.6f;
-	light.Diffuse.g  = 0.6f;
-	light.Diffuse.b  = 0.6f;
-	light.Diffuse.a  = 0.6f;
-	light.Attenuation1 = 0.4f;
-	light.Range      = 100000.0f;
+	light.Type       = D3DLIGHT_POINT;
+	light.Position = at;
+	light.Ambient.r  = 0.2f;
+	light.Ambient.g  = 0.2f;
+	light.Ambient.b  = 0.2f;
+	light.Ambient.a  = 0.2f;
+	light.Diffuse.r  = 0.8f;
+	light.Diffuse.g  = 0.8f;
+	light.Diffuse.b  = 0.8f;
+	light.Diffuse.a  = 0.8f;
+	light.Specular.r  = 0.4f;
+	light.Specular.g  = 0.4f;
+	light.Specular.b  = 0.4f;
+	light.Specular.a  = 1.0f;
+	light.Attenuation1 = 0.2f;
+	light.Range      = 20.0f;
+	light.Phi = 40/180*3.14;
+	light.Theta = 80/180*3.14;
 	D3DXVECTOR3 vecDir;
 	vecDir = D3DXVECTOR3(0.0f,-1.0,0.3);
+	//D3DXVec3Subtract((D3DXVECTOR3*)&light.Direction, &eye, &at);
 	D3DXVec3Normalize((D3DXVECTOR3*)&light.Direction, &vecDir);
+	D3DXVec3Normalize((D3DXVECTOR3*)&light.Direction, (D3DXVECTOR3*)&light.Direction);
 	getDevice()->SetLight(0, &light);
 	getDevice()->LightEnable(0, TRUE);
-	getDevice()->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(50,50,50));
-
+	getDevice()->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(25,25,25));
+	int lightIndex = 1;
 	// draw map
 	drawTiles();
 
-	// setup drawing options
-	getDevice()->SetRenderState(D3DRS_LIGHTING, FALSE);
-	getDevice()->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-
 	// draw nodes
 	drawNodes(&matrix);
-
-	// disable z
-	getDevice()->SetRenderState(D3DRS_ZENABLE, FALSE);
 
 	for(int i = 0; i < towers.size(); ++i)
 	{
  		Tower* t = towers[i];
 		if(t->mesh)
 		{
-			t->mesh->draw(D3DXVECTOR3(t->pos.x, 0, t->pos.y));
+			D3DXVECTOR2 vv(t->pos.x, t->pos.y);
+			t->mesh->draw(D3DXVECTOR3(t->pos.x + 0.5f, 0, t->pos.y + 0.5f));
+			drawRing(g_Game->ringa, vv, 10 + i);
 		}
 	}
 
@@ -903,8 +916,36 @@ void Map::draw()
 		}
 		if(!mesh)
 			continue;
-		mesh->draw(D3DXVECTOR3(v.position.x + 0.5f, 0, v.position.y + 0.5f), D3DXVECTOR3(v.dir.x, 0, v.dir.y));
+		D3DXVECTOR2 vv(v.position.x + 0.5f, v.position.y + 0.5f);
+		mesh->draw(D3DXVECTOR3(v.position.x + 0.5f, 0.02f, v.position.y + 0.5f), D3DXVECTOR3(v.dir.x, 0, v.dir.y));
+		if(v.type == VEHICLE_Vip)
+			drawRing(g_Game->ringc, v.position, 3 + i);
+		else
+			drawRing(g_Game->ringb, v.position, 5 + i);
+
+		if(lightIndex < 8 && false)
+		{
+			memset(&light.Ambient, 0, sizeof(light.Ambient));
+			light.Position = D3DXVECTOR3(v.position.x + 0.5f, 0, v.position.y + 0.5f);
+			light.Range = 3.0f;
+			light.Attenuation1 = 0.5f;
+			getDevice()->SetLight(lightIndex, &light);
+			getDevice()->LightEnable(lightIndex, TRUE);
+			++lightIndex;
+		}
 	}
+
+	while(lightIndex<8)
+	{
+		getDevice()->LightEnable(lightIndex++, FALSE);
+	}
+	
+	// setup drawing options
+	getDevice()->SetRenderState(D3DRS_LIGHTING, FALSE);
+	getDevice()->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+
+	// disable z
+	getDevice()->SetRenderState(D3DRS_ZENABLE, FALSE);
 
 	for(int i = 0; i < bullets.size(); ++i)
 	{

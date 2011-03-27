@@ -38,12 +38,15 @@ ap_d("models/ap_d.x"),
 vip("models/vip.x"),
 police("models/car.x"),
 tower("models/tower.x"),
-hangar("models/hangar_mesh.x")
+hangar("models/hangar_mesh.x"),
+ringa("gfx/circle_yellow.png"),
+ringb("gfx/circle_red.png"),
+ringc("gfx/circle_blue.png")
 {
 	g_Game = this;
 	
 	loadLevel();
-	changeState(EGameState::Intro);
+	changeState(EGameState::RoutePlaning);
 
 	explosionSound = g_Audio()->loadSound("sfx/explosion.wav");
 	g_fireSound = g_Audio()->loadSound("sfx/fire.wav");
