@@ -5,9 +5,9 @@
 
 #define buttonStartX  20
 #define buttonStartY  250
-#define buttonSize  64
-#define buttonMarginX  20
-#define buttonMarginY  20
+#define buttonSize  32
+#define buttonMarginX  10
+#define buttonMarginY  10
 
 #define mapScale 8
 

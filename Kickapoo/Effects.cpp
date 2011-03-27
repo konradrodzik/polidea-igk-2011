@@ -72,17 +72,21 @@ void Smoke::draw(VertexBuffer* vb, BufferChunk& chunk)
 	ParticleEffect::draw(vb, chunk);
 }
 
-Nova::Nova(void)
+Nova::Nova(D3DXVECTOR3 p, float time, float velocity)
 {
+	t = time;
+	v_ = velocity;
+
 	elapsedTime = 0;
 	enabled = true;
 
-	pos = D3DXVECTOR3(0, 0, 0);
+	pos = p;
 
 	texture = "smoketex.jpg";
+	float c = RandomFloat(0.2, 1);
 	for(int i  = 0; i < 500; ++i)
 	{
-		spawn();
+		spawn(D3DXCOLOR(c, c, c, 1));
 	}
 }
 
@@ -90,21 +94,20 @@ Nova::~Nova(void)
 {
 }
 
-void Nova::spawn()
+void Nova::spawn(D3DCOLOR c)
 {
 	particle_vertex v;
 	v.pos = pos;
 	
-	float c = RandomFloat(0.2, 1);
-	v.color = D3DXCOLOR(RandomFloat(0.2, 1), RandomFloat(0.2, 1), RandomFloat(0.2, 1), 1);
+	v.color = c;
 	v.size = RandomFloat(2, 3);
 
 	Properties p;
-	p.lifeTime = 1;
+	p.lifeTime = t;
 	p.time = 0;
-	p.dirVec = D3DXVECTOR3(RandomFloat(-1, 1), RandomFloat(-1, 1), RandomFloat(0, 1));
+	p.dirVec = D3DXVECTOR3(RandomFloat(-1, 1), RandomFloat(0, 1), RandomFloat(-1, 1));
 	D3DXVec3Normalize(&p.dirVec, &p.dirVec);
-	p.velocity = 100;
+	p.velocity = v_;
 
 	vert.push_back(v);
 	prop.push_back(p);
@@ -114,13 +117,6 @@ bool Nova::update()
 {
 	if(vert.empty()) {
 		return false;
-	}
-
-	elapsedTime += g_Timer()->getFrameTime();
-	if(elapsedTime > 0.1f && enabled)
-	{
-		spawn();
-		elapsedTime = 0;
 	}
 
 	for(int i = 0; i < vert.size(); )
@@ -151,12 +147,12 @@ void Nova::draw(VertexBuffer* vb, BufferChunk& chunk)
 	ParticleEffect::draw(vb, chunk);
 }
 
-Fire::Fire(void)
+Fire::Fire(D3DXVECTOR3 p)
 {
 	elapsedTime = 0;
 	enabled = true;
 
-	pos = D3DXVECTOR3(0, 0, 0);
+	pos = p;
 
 	texture = "smoketex.jpg";
 	for(int i  = 0; i < 500; ++i)
@@ -175,13 +171,13 @@ void Fire::spawn()
 	v.pos = pos + D3DXVECTOR3(RandomFloat(-10, 10), RandomFloat(-10, 10), 0);
 	
 	float c = RandomFloat(0.2, 1);
-	v.color = D3DXCOLOR(RandomFloat(0.2, 1), RandomFloat(0.2, 1), RandomFloat(0.2, 1), 1);
+	v.color = D3DXCOLOR(RandomFloat(0.2, 1), 0, 0, 1);
 	v.size = RandomFloat(2, 3);
 
 	Properties p;
 	p.lifeTime = 1;
 	p.time = 0;
-	p.dirVec = D3DXVECTOR3(RandomFloat(-0.5f, 0.5f), RandomFloat(-0.5f, 0.5f), RandomFloat(0, 1));
+	p.dirVec = D3DXVECTOR3(RandomFloat(-0.5f, 0.5f), RandomFloat(-0.5f, 0.5f), RandomFloat(0, 10));
 	D3DXVec3Normalize(&p.dirVec, &p.dirVec);
 	p.velocity = 100;
 
@@ -196,7 +192,7 @@ bool Fire::update()
 	}
 
 	elapsedTime += g_Timer()->getFrameTime();
-	if(elapsedTime > 0.1f && enabled)
+	if(elapsedTime > 0.01f && enabled)
 	{
 		spawn();
 		elapsedTime = 0;
