@@ -106,7 +106,7 @@ void RoutePlaner::update()
 			} else if (selectedGroup) {
 			//! route
 				if ((Mouse::getSingletonPtr()->getX() > mapX &&
-					Mouse::getSingletonPtr()->getX() < mapX + mapWidth) && ( Mouse::getSingletonPtr()->getY() > mapY && Mouse::getSingletonPtr()->getY() < (mapY + mapHeight)) ) {
+					Mouse::getSingletonPtr()->getX() < mapX + mapWidth) && ( Mouse::getSingletonPtr()->getY() > mapY && Mouse::getSingletonPtr()->getY() < mapY + mapHeight) ) {
 					printf("dupa");
 				}
 			}
@@ -141,7 +141,7 @@ void RoutePlaner::draw()
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
 	getDevice()->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_FLAT);
-	mapX = 800 - mapWidth + 120;
+	mapX = 800 - mapWidth;
 	mapY = 600 - 32 - mapHeight;
 	g_Renderer()->drawRectRHW(mapX, mapY, mapWidth, mapHeight);
 	g_Direct3D()->getDevice()->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);

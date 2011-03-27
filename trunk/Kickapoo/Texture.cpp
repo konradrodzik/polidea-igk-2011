@@ -9,8 +9,8 @@ void Texture::load(const string& textureName_, int mipMapLevels)
 	if(D3DXCreateTextureFromFileEx(
 		getDevice(),
 		textureName_.c_str(),
-		D3DX_DEFAULT, 
-		D3DX_DEFAULT,	
+		D3DX_DEFAULT_NONPOW2, 
+		D3DX_DEFAULT_NONPOW2,	
 		mipMapLevels, 
 		0,
 		D3DFMT_UNKNOWN,	

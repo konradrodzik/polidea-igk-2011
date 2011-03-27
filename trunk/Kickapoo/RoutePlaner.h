@@ -9,7 +9,7 @@
 #define buttonMarginX  20
 #define buttonMarginY  20
 
-#define mapScale 11
+#define mapScale 8
 
 class RoutePlaner {
 public:
