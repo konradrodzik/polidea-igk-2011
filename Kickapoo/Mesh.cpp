@@ -25,22 +25,7 @@ void Mesh::load(const string& meshName_)
 		return;
 	}
 
-	byte* vertices;
-	hr = pMesh->LockVertexBuffer(0, (LPVOID*)&vertices);
-	if(SUCCEEDED(hr))
-	{
-		DWORD size = pMesh->GetNumBytesPerVertex();
-		DWORD count = pMesh->GetNumVertices();
-		for(int i = 0; i < count; ++i)
-		{
-			// xz-y
-			// xy-z
-			D3DXVECTOR3* vert = (D3DXVECTOR3*)vertices;
-			vertices += size;
-			//std::swap(vert->z, vert->y);
-		}
-		pMesh->UnlockVertexBuffer();
-	}
+	D3DXComputeNormals(pMesh, NULL);
 
 	D3DXMATERIAL* d3dxMaterials = (D3DXMATERIAL*)materialBuffer->GetBufferPointer();
 	materials.assign(d3dxMaterials, d3dxMaterials+numMaterials);
@@ -51,7 +36,7 @@ void Mesh::load(const string& meshName_)
 	for(int i = 0; i < numMaterials; ++i)
 	{
 		if(materials[i].pTextureFilename)
-			textures[i].load(materials[i].pTextureFilename);
+			textures[i].load(string("models/") + materials[i].pTextureFilename);
 		else
 			textures[i].load(string(basename(MeshName.c_str())) + ".bmp");
 	}
@@ -72,6 +57,8 @@ void Mesh::release()
 
 void Mesh::draw(const D3DXVECTOR3& position, const D3DXVECTOR3& dir)
 {
+	getDevice()->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_FLAT);
+
 	D3DXMATRIX trans;
 	D3DXMatrixTranslation(&trans, position.x, position.y, position.z);
 	trans.m[0][0] = scale.x;

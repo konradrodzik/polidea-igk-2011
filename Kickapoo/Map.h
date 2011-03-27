@@ -78,7 +78,8 @@ struct Vehicle
 	float time;
 	float startTime;
 
-	Vehicle() : type(VEHICLE_Fast), bulletType(BULLET_Shot), model(NULL), group(NULL), currentNode(0), velocity(10)
+	Vehicle() : type(VEHICLE_Fast), bulletType(BULLET_Shot), model(NULL), group(NULL), currentNode(0), velocity(10), position(0,0),
+		dir(0,0), range(0), fireTime(0), time(0), startTime(0)
 	{
 		hp = 300;
 	}

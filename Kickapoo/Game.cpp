@@ -30,16 +30,18 @@ street("gfx/road.png"),
 street_corner("gfx/road2.png"),
 street_cross("gfx/road3.png"),
 street_cross3("gfx/road4.png"),
-tank1("models/tank.x"),
+tank1("models/tank1.x"),
 grass("gfx/grass.png"),
-ap_b("models/ap_b.x")
+ap_b("models/ap_b3.x"),
+ap_c("models/ap_c.x"),
+ap_d("models/ap_d.x"),
+vip("models/car.x"),
+tower("models/tower.x")
 {
 	g_Game = this;
-
-	changeState(EGameState::RoutePlaning);
+	
 	loadLevel();
-
-	tank1.setScale(1/113.0f,1/113.0f,1/113.0f);
+	changeState(EGameState::Running);
 
 	explosionSound = g_Audio()->loadSound("sfx/explosion.wav");
 	g_fireSound = g_Audio()->loadSound("sfx/fire.wav");

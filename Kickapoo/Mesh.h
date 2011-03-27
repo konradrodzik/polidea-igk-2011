@@ -5,10 +5,10 @@
 class Mesh : public resource<Mesh>
 {
 public:
-	Mesh() : pMesh(NULL) { 
+	Mesh() : pMesh(NULL),scale(1,1,1) { 
 		addResource(); 
 	}
-	Mesh(const string& name_) : pMesh(NULL) { 
+	Mesh(const string& name_) : pMesh(NULL),scale(1,1,1) { 
 		addResource(); load(name_); 
 	}
 	virtual ~Mesh() { removeResource(); }

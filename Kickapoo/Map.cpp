@@ -79,6 +79,8 @@ void Map::setupGroups()
 		if (i > 3 && i % 4 == 0) groupIndex++;
 		vehicles[i].group = &groups[groupIndex];
 		vehicles[i].tile = Texture( i % 2 == 0 ? "tank_tile.png" : "smoketex.jpg" );
+		int nodeIndex = i % nodeCount;
+		vehicles[i].position = nodes[nodeIndex].position;
 	}
 	vehicleCount = 16;
 
@@ -136,6 +138,7 @@ Map* Map::load( const std::string& name )
 		for(unsigned i = map->height; i-- > 0; ) {
 			byte bytes[3];
 			for(unsigned j = 0; j < map->width; ++j) {
+				int h = map->height - i - 1;
 				int index = (map->height - i - 1) * map->width + j;
 				fread(bytes, 3, 1, file);
 				std::swap(bytes[0], bytes[2]);
@@ -143,14 +146,14 @@ Map* Map::load( const std::string& name )
 					continue;
 
 				if(bytes[0] > 80 && bytes[1] <= 80 && bytes[2] <= 80) {
-					map->tiles[j][i].type = TILE_Street;
+					map->tiles[j][h].type = TILE_Street;
 				}
 				else if(bytes[0] <= 80 && bytes[1] <= 80 && bytes[2] > 80) {
-					map->tiles[j][i].type = TILE_Water;
+					map->tiles[j][h].type = TILE_Water;
 				}
 				else if(bytes[0] <= 80 && bytes[1] <= 80 && bytes[2] <= 80) {
-					map->tiles[j][i].type = TILE_Block;
-					map->tiles[j][i].random = 1;// + 0.5 * (float)rand() / RAND_MAX;
+					map->tiles[j][h].type = TILE_Block;
+					map->tiles[j][h].random = 1;// + 0.5 * (float)rand() / RAND_MAX;
 				}
 			}
 			fread(bytes, pad-byteWidth, 1, file);
@@ -254,9 +257,22 @@ void Map::finalize()
 			}
 			else if(cur.type == TILE_Block)
 			{
-					if(i & 3 || j & 3)
+					if(i & 2 || j & 2)
 						continue;
+					switch(rand() % 3)
+					{
+					case 0:
 				cur.mesh = &g_Game->ap_b;
+				break;
+				
+					case 2:
+				cur.mesh = &g_Game->ap_c;
+				break;
+				
+					case 1:
+				cur.mesh = &g_Game->ap_d;
+				break;
+					}
 			}
 			else
 			{
@@ -282,6 +298,13 @@ void Map::finalize()
 			if(!node)
 				continue;
 			
+			if(cur.texture != &g_Game->street_cross && cur.texture != &g_Game->street_cross3 && cur.texture != &g_Game->street_corner)
+			{
+				if(!lastNode)
+					lastNode = node;
+				continue;
+			}
+
 			if(lastNode)
 			{
 				lastNode->otherNodes.push_back(node);
@@ -307,6 +330,13 @@ void Map::finalize()
 			Node* node = cur.node;
 			if(!node)
 				continue;
+
+			if(cur.texture != &g_Game->street_cross && cur.texture != &g_Game->street_cross3 && cur.texture != &g_Game->street_corner)
+			{
+				if(!lastNode)
+					lastNode = node;
+				continue;
+			}
 
 			if(lastNode)
 			{
@@ -341,6 +371,8 @@ void Map::update()
 	float sensitivity = 8;
 	cameraPosition.x -= dx * sensitivity * g_Timer()->getFrameTime(); 
 	cameraPosition.z += dy * sensitivity * g_Timer()->getFrameTime();
+	cameraPosition.x = max(0, min(width, cameraPosition.x));
+	cameraPosition.z = max(0, min(height, cameraPosition.z));
 
 	if(scroll > 0)
 		cameraPosition.y = max(cameraPosition.y - 3, 2);
@@ -509,12 +541,29 @@ void Map::drawTiles()
 					verts[k].tex[0] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[0];
 					verts[k].tex[1] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[1];
 				}
+				tile.texture->set(0);
+				getDevice()->SetFVF(Vertex::FVF);
+				getDevice()->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(verts[0]));
 				break;
 				}
 			case TILE_Block:
 				{
+				Vertex verts[COUNT_OF(RectVerts)];
+				for(int k = 0; k < COUNT_OF(RectVerts); ++k)
+				{
+					verts[k] = RectVerts[k];
+					verts[k].xyz[0] += j;
+					verts[k].xyz[2] += i;
+					verts[k].tex[0] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[0];
+					verts[k].tex[1] = RectVerts[(k+tile.offset)%COUNT_OF(RectVerts)].tex[1];
+				}
+				g_Game->grass.set(0);
+				getDevice()->SetFVF(Vertex::FVF);
+				getDevice()->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(verts[0]));
+
 					if(!tile.mesh)
 						continue;
+
 				tile.mesh->draw(D3DXVECTOR3(j, 0, i), D3DXVECTOR3());
 				}
 				break;
@@ -568,7 +617,7 @@ void Map::draw()
 
 	// setup projection matrix
 	D3DXMATRIX proj;
-	D3DXMatrixPerspectiveFovRH(&proj, 90, 4.0f/3.0f, 1, 10000);
+	D3DXMatrixPerspectiveFovRH(&proj, 60.0f / 180 * 3.14f, 4.0f/3.0f, 1, 10000);
 	getDevice()->SetTransform(D3DTS_PROJECTION, &proj);
 
 	// setup view matrix
@@ -627,6 +676,8 @@ void Map::draw()
 	// draw map
 	drawTiles();
 
+	g_Game->vip.draw(D3DXVECTOR3(10,1,10), D3DXVECTOR3());
+
 	// setup drawing options
 	getDevice()->SetRenderState(D3DRS_LIGHTING, FALSE);
 	getDevice()->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
@@ -638,6 +689,12 @@ void Map::draw()
 	getDevice()->SetRenderState(D3DRS_ZENABLE, FALSE);
 
 	// TODO: draw vehicles
+
+	for(int i = 0; i < vehicleCount; ++i)
+	{
+		Vehicle& v = vehicles[i];
+		g_Game->vip.draw(D3DXVECTOR3(v.position.x + 0.5f, 0, v.position.y + 0.5f), D3DXVECTOR3());
+	}
 
 	for(int i = 0; i < bullets.size(); ++i)
 	{
