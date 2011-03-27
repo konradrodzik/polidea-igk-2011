@@ -155,7 +155,7 @@ Map* Map::load( const std::string& name )
 		for(unsigned i = map->height; i-- > 0; ) {
 			byte bytes[3];
 			for(unsigned j = 0; j < map->width; ++j) {
-				int h = map->height - i - 1;
+				int h = i;//map->height - i - 1;
 				int index = (map->height - i - 1) * map->width + j;
 				fread(bytes, 3, 1, file);
 				std::swap(bytes[0], bytes[2]);
@@ -287,7 +287,7 @@ void Map::finalize()
 				}
 
 
-				if(cur.texture != &g_Game->street)
+				if(cur.texture != &g_Game->street || cur.isStart)
 				{
 					// add node
 					cur.node = &nodes[nodeCount++];
@@ -352,7 +352,7 @@ void Map::finalize()
 			if(!node)
 				continue;
 			
-			if(cur.texture == &g_Game->street)
+			if(cur.texture == &g_Game->street && !cur.isStart)
 			{
 				if(!lastNode)
 					lastNode = node;
