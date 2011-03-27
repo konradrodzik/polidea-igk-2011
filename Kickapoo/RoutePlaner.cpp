@@ -43,6 +43,7 @@ void RoutePlaner::placeButtons() {
 	}
 }
 RoutePlaner::RoutePlaner()
+	: startGame("start.png")
 {
 	lastClickedButton = NULL;
 	lastClickedButtonIndex = 0;
@@ -57,7 +58,8 @@ void RoutePlaner::update()
 {
 	int clickedButtonIndex = 0;
 	Button *clickedButton = NULL;
-	if (Input::getSingletonPtr()->buttonClicked(0)) {
+	bool buttonPressed = Input::getSingletonPtr()->buttonClicked(0);
+	if (buttonPressed) {
 		for (int i=0; i < buttonCount; ++i) {
 			Button *button = buttons[i];
 			if (button->mouseInside()) {
@@ -93,6 +95,16 @@ void RoutePlaner::update()
 
 		lastClickedButton = clickedButton;
 		lastClickedButtonIndex = clickedButtonIndex;
+	} else {
+		//! route select or start
+		if (buttonPressed) {
+			//! start
+			if (Mouse::getSingletonPtr()->getX() > 800 - 146 && Mouse::getSingletonPtr()->getY() > 600-32) {
+				game_->changeState(EGameState::Running);
+			} else {
+			//! route
+			}
+		}
 	}
 }
 
@@ -110,4 +122,7 @@ void RoutePlaner::draw()
 			g_Renderer()->drawRectRHW(button->rect.left, button->rect.top, buttonSize, buttonSize);
 		}
 	}
+
+	startGame.set();
+	g_Renderer()->drawRectRHW(800-146, 600 - 32, 146, 32);
 }

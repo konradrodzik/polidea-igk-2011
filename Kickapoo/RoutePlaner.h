@@ -28,7 +28,7 @@ public:
 	Button *lastClickedButton;
 	unsigned int lastClickedButtonIndex;
 	Game *game_;
-
+	Texture startGame;
 public:
 	RoutePlaner();
 	void placeButtons();
