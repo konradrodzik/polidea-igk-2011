@@ -68,5 +68,7 @@ public:
 	Texture street, street_corner, street_cross3, street_cross;
 	Texture grass;
 	Mesh tank1;
-	Mesh ap_b;
+	Mesh ap_b, ap_d, ap_c;
+	Mesh vip;
+	Mesh tower;
 };
