@@ -41,7 +41,7 @@ tower("models/tower.x")
 	g_Game = this;
 	
 	loadLevel();
-	changeState(EGameState::Running);
+	changeState(EGameState::RoutePlaning);
 
 	explosionSound = g_Audio()->loadSound("sfx/explosion.wav");
 	g_fireSound = g_Audio()->loadSound("sfx/fire.wav");

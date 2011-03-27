@@ -107,7 +107,28 @@ void RoutePlaner::update()
 			//! route
 				if ((Mouse::getSingletonPtr()->getX() > mapX &&
 					Mouse::getSingletonPtr()->getX() < mapX + mapWidth) && ( Mouse::getSingletonPtr()->getY() > mapY && Mouse::getSingletonPtr()->getY() < mapY + mapHeight) ) {
-					printf("dupa");
+					int tilesX = floor((Mouse::getSingletonPtr()->getX() - mapX) / (float)mapScale);
+					int tilesY = floor((Mouse::getSingletonPtr()->getY() - mapY) / (float)mapScale);
+
+					printf("tiles %d %d\n", tilesX, tilesY);
+					if (selectedGroup->nodes.size() > 0) {
+						Node *node = selectedGroup->nodes.back();
+						//! find node connected to this one
+#define EPS 0.0001f
+#define FLT_EQ(x, y) (x > y - EPS && x < y + EPS)
+
+						for (int i = 0; i < node->otherNodes.size(); ++i) {
+							if (FLT_EQ(node->otherNodes[i]->position.x, tilesX) && FLT_EQ(node->otherNodes[i]->position.y, tilesY)) {
+								selectedGroup->nodes.push_back(node->otherNodes[i]);
+								printf("pushing node\n");
+								break;
+							}
+						}
+					} else {
+						printf("THERE SHOULD BE FIRST NODE");
+						selectedGroup->nodes.push_back(&game_->map->nodes[0]);
+					}
+					
 				}
 			}
 		}
