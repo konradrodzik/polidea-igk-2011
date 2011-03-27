@@ -72,4 +72,5 @@ public:
 	Mesh ap_b, ap_d, ap_c;
 	Mesh police, vip;
 	Mesh tower;
+	Texture ringa, ringb, ringc;
 };
